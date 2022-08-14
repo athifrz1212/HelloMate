@@ -1,6 +1,6 @@
 // @refresh reset
 import {useRoute} from '@react-navigation/native';
-import 'react-native-get-random-values';
+// import 'react-native-get-random-values';
 import {nanoid} from 'nanoid';
 import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {
@@ -11,7 +11,7 @@ import {
   Image,
 } from 'react-native';
 import {Ionicons} from 'react-native-vector-icons/Ionicons';
-import {auth, db} from '../firebase';
+import firebaseSetup from '../db/firebase';
 import GlobalContext from '../context/Context';
 import {
   addDoc,
@@ -20,19 +20,21 @@ import {
   onSnapshot,
   setDoc,
   updateDoc,
-} from '@firebase/firestore';
+} from '@react-native-firebase/firestore';
 import {
   Actions,
   Bubble,
   GiftedChat,
   InputToolbar,
 } from 'react-native-gifted-chat';
-import {pickImage, uploadImage} from '../utils';
+import {pickImage, uploadImage} from '../utilities/utils';
 import ImageView from 'react-native-image-viewing';
 
 const randomId = nanoid();
 
 export default function Chat() {
+  const {auth, firestore} = firebaseSetup();
+  const roomCollection = firestore().collection('rooms');
   const [roomHash, setRoomHash] = useState('');
   const [messages, setMessages] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -154,7 +156,7 @@ export default function Chat() {
   return (
     <ImageBackground
       resizeMode="cover"
-      source={require('../assets/chatbg.png')}
+      source={require('../../assets/chatbg.png')}
       style={{flex: 1}}>
       <GiftedChat
         onSend={onSend}

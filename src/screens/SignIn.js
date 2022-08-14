@@ -2,13 +2,14 @@ import React, {useContext, useState, useEffect} from 'react';
 import {StyleSheet, View, Image, TextInput, Button, Text} from 'react-native';
 import Context from '../context/Context';
 import firebaseSetup from '../db/firebase';
-// import auth from '@react-native-firebase/auth';
+import {useNavigation} from '@react-navigation/native';
 
 export default function SignIn() {
   const {auth} = firebaseSetup();
   const [countryCode, setCountryCode] = useState('+94');
   const [phoneNumber, setPhoneNumber] = useState('762731888');
   const [otpVisible, setOTPVisible] = useState(false);
+  const navigation = useNavigation();
 
   // // If null, no SMS has been sent
   const [confirmation, setConfirmation] = useState('');
@@ -31,6 +32,7 @@ export default function SignIn() {
     try {
       await confirmation.confirm(code);
       console.log('Signed In');
+      navigation.navigate('home');
     } catch (error) {
       console.log(error);
     }

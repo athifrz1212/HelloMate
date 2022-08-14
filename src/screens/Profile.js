@@ -1,4 +1,3 @@
-import {StatusBar} from 'expo-status-bar';
 import React, {useContext, useEffect, useState} from 'react';
 import {
   View,
@@ -7,34 +6,34 @@ import {
   Image,
   TextInput,
   Button,
+  StatusBar,
 } from 'react-native';
-import Constants from 'expo-constants';
 import GlobalContext from '../context/Context';
 import {MaterialCommunityIcons} from 'react-native-vector-icons/MaterialCommunityIcons';
-import {pickImage, askForPermission, uploadImage} from '../utils';
-import {auth, db} from '../firebase';
-import {updateProfile} from '@firebase/auth';
-import {doc, setDoc} from '@firebase/firestore';
+import {pickImage, askForPermission, uploadImage} from '../utilities/utils';
+import firebaseSetup from '../db/firebase';
+import {updateProfile} from '@react-native-firebase/auth';
 import {useNavigation} from '@react-navigation/native';
 
 export default function Profile() {
+  const {auth, firestore} = firebaseSetup();
   const [displayName, setDisplayName] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
   const [permissionStatus, setPermissionStatus] = useState(null);
   const navigation = useNavigation();
-  useEffect(() => {
-    (async () => {
-      const status = await askForPermission();
-      setPermissionStatus(status);
-    })();
-  }, []);
+  // useEffect(() => {
+  //   (async () => {
+  //     const status = await askForPermission();
+  //     setPermissionStatus(status);
+  //   })();
+  // }, []);
 
   const {
     theme: {colors},
   } = useContext(GlobalContext);
 
   async function handlePress() {
-    const user = auth.currentUser;
+    const user = auth().currentUser;
     let photoURL;
     if (selectedImage) {
       const {url} = await uploadImage(
@@ -45,8 +44,8 @@ export default function Profile() {
       photoURL = url;
     }
     const userData = {
-      displayName,
-      email: user.email,
+      displayName: displayName,
+      phoneNumber: user.phoneNumber,
     };
     if (photoURL) {
       userData.photoURL = photoURL;
@@ -66,12 +65,12 @@ export default function Profile() {
     }
   }
 
-  if (!permissionStatus) {
-    return <Text>Loading</Text>;
-  }
-  if (permissionStatus !== 'granted') {
-    return <Text>You need to allow this permission</Text>;
-  }
+  // if (!permissionStatus) {
+  //   return <Text>Loading</Text>;
+  // }
+  // if (permissionStatus !== 'granted') {
+  //   return <Text>You need to allow this permission</Text>;
+  // }
   return (
     <React.Fragment>
       <StatusBar style="auto" />
@@ -80,7 +79,7 @@ export default function Profile() {
           alignItems: 'center',
           justifyContent: 'center',
           flex: 1,
-          paddingTop: Constants.statusBarHeight + 20,
+          paddingTop: StatusBar.currentHeight + 20,
           padding: 20,
         }}>
         <Text style={{fontSize: 22, color: colors.foreground}}>

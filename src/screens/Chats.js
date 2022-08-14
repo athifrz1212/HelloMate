@@ -1,19 +1,20 @@
-import {collection, onSnapshot, query, where} from '@firebase/firestore';
+// import {collection, onSnapshot, query, where} from '@firebase/firestore';
 import React, {useContext, useEffect} from 'react';
 import {View, Text} from 'react-native';
 import GlobalContext from '../context/Context';
-import {auth, db} from '../db/firebase';
+import firebaseSetup from '../db/firebase';
 import ContactsFloatingIcon from '../components/ContactsFloatingIcon';
 import ListItem from '../components/ListItem';
 import useContacts from '../hooks/useHooks';
 export default function Chats() {
-  const {currentUser} = auth;
+  const {auth, storage, firestore} = firebaseSetup();
+  const {currentUser} = auth();
   const {rooms, setRooms, setUnfilteredRooms} = useContext(GlobalContext);
   const contacts = useContacts();
-  // const chatsQuery = query(
-  //   collection(db, 'rooms'),
-  //   where('participantsArray', 'array-contains', currentUser.phoneNumber),
-  // );
+  const chatsQuery = query(
+    collection(db, 'rooms'),
+    where('participantsArray', 'array-contains', currentUser.phoneNumber),
+  );
   // useEffect(() => {
   //   const unsubscribe = onSnapshot(chatsQuery, querySnapshot => {
   //     const parsedChats = querySnapshot.docs.map(doc => ({
