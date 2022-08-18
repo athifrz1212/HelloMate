@@ -12,7 +12,7 @@ import GlobalContext from '../context/Context';
 import {MaterialCommunityIcons} from 'react-native-vector-icons/MaterialCommunityIcons';
 import {pickImage, askForPermission, uploadImage} from '../utilities/utils';
 import firebaseSetup from '../db/firebase';
-import {updateProfile} from '@react-native-firebase/auth';
+// import {updateProfile} from '@react-native-firebase/auth';
 import {useNavigation} from '@react-navigation/native';
 
 export default function Profile() {
@@ -52,8 +52,13 @@ export default function Profile() {
     }
 
     await Promise.all([
-      updateProfile(user, userData),
-      setDoc(doc(db, 'users', user.uid), {...userData, uid: user.uid}),
+      auth().currentUser.updateProfile(userData),
+      // updateProfile(user, userData),
+      firestore()
+        .collection('users')
+        .doc(user.uid)
+        .set({...userData, uid: user.uid}),
+      // setDoc(doc(db, 'users', user.uid), {...userData, uid: user.uid}),
     ]);
     navigation.navigate('home');
   }

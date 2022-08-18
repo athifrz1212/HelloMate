@@ -11,22 +11,34 @@ export default function Chats() {
   const {currentUser} = auth();
   const {rooms, setRooms, setUnfilteredRooms} = useContext(GlobalContext);
   const contacts = useContacts();
-  const chatsQuery = query(
-    collection(db, 'rooms'),
-    where('participantsArray', 'array-contains', currentUser.phoneNumber),
-  );
-  // useEffect(() => {
-  //   const unsubscribe = onSnapshot(chatsQuery, querySnapshot => {
-  //     const parsedChats = querySnapshot.docs.map(doc => ({
-  //       ...doc.data(),
-  //       id: doc.id,
-  //       userB: doc.data().participants.find(p => p.email !== currentUser.email),
-  //     }));
-  //     setUnfilteredRooms(parsedChats);
-  //     setRooms(parsedChats.filter(doc => doc.lastMessage));
-  //   });
-  //   return () => unsubscribe();
-  // }, []);
+  const chatsQuery = firestore()
+    .collection('rooms')
+    .where('participantsArray', 'array-contains', currentUser.phoneNumber);
+  // const chatsQuery = query(
+  //   collection(db, 'rooms'),
+  //   where('participantsArray', 'array-contains', currentUser.phoneNumber),
+  // );
+  useEffect(() => {
+    const unsubscribe = chatsQuery.get().then(querySnapshot => {
+      const parsedChats = querySnapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id,
+        userB: doc.data().participants.find(p => p.email !== currentUser.email),
+      }));
+      setUnfilteredRooms(parsedChats);
+      setRooms(parsedChats.filter(doc => doc.lastMessage));
+    });
+    // onSnapshot(chatsQuery, querySnapshot => {
+    //   const parsedChats = querySnapshot.docs.map(doc => ({
+    //     ...doc.data(),
+    //     id: doc.id,
+    //     userB: doc.data().participants.find(p => p.email !== currentUser.email),
+    //   }));
+    //   setUnfilteredRooms(parsedChats);
+    //   setRooms(parsedChats.filter(doc => doc.lastMessage));
+    // });
+    return () => unsubscribe();
+  }, []);
 
   function getUserB(user, contacts) {
     const userContact = contacts.find(c => c.email === user.email);

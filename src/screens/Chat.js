@@ -13,14 +13,7 @@ import {
 import {Ionicons} from 'react-native-vector-icons/Ionicons';
 import firebaseSetup from '../db/firebase';
 import GlobalContext from '../context/Context';
-import {
-  addDoc,
-  collection,
-  doc,
-  onSnapshot,
-  setDoc,
-  updateDoc,
-} from '@react-native-firebase/firestore';
+// import {addDoc, setDoc, updateDoc} from '@react-native-firebase/firestore';
 import {
   Actions,
   Bubble,
@@ -58,8 +51,10 @@ export default function Chat() {
 
   const roomId = room ? room.id : randomId;
 
-  const roomRef = doc(db, 'rooms', roomId);
-  const roomMessagesRef = collection(db, 'rooms', roomId, 'messages');
+  const roomRef = roomCollection.doc('roomId');
+  //  doc(db, 'rooms', roomId);
+  const roomMessagesRef = roomCollection.doc(roomId).collection('messages');
+  // collection(db, 'rooms', roomId, 'messages');
 
   useEffect(() => {
     (async () => {
@@ -83,7 +78,8 @@ export default function Chat() {
           participantsArray: [currentUser.email, userB.email],
         };
         try {
-          await setDoc(roomRef, roomData);
+          await roomRef.set(roomData);
+          // setDoc(roomRef, roomData);
         } catch (error) {
           console.log(error);
         }
@@ -97,7 +93,7 @@ export default function Chat() {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(roomMessagesRef, querySnapshot => {
+    const unsubscribe = roomMessagesRef.get().then(querySnapshot => {
       const messagesFirestore = querySnapshot
         .docChanges()
         .filter(({type}) => type === 'added')
@@ -108,6 +104,17 @@ export default function Chat() {
         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
       appendMessages(messagesFirestore);
     });
+    // onSnapshot(roomMessagesRef, querySnapshot => {
+    //   const messagesFirestore = querySnapshot
+    //     .docChanges()
+    //     .filter(({type}) => type === 'added')
+    //     .map(({doc}) => {
+    //       const message = doc.data();
+    //       return {...message, createdAt: message.createdAt.toDate()};
+    //     })
+    //     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    //   appendMessages(messagesFirestore);
+    // });
     return () => unsubscribe();
   }, []);
 
@@ -121,9 +128,12 @@ export default function Chat() {
   );
 
   async function onSend(messages = []) {
-    const writes = messages.map(m => addDoc(roomMessagesRef, m));
+    const writes = messages.map(m => roomMessagesRef.add(m));
+    // addDoc(roomMessagesRef, m) );
     const lastMessage = messages[messages.length - 1];
-    writes.push(updateDoc(roomRef, {lastMessage}));
+
+    writes.push(roomRef.update(lastMessage));
+    // updateDoc(roomRef, {lastMessage}));
     await Promise.all(writes);
   }
 
@@ -141,8 +151,10 @@ export default function Chat() {
     };
     const lastMessage = {...message, text: 'Image'};
     await Promise.all([
-      addDoc(roomMessagesRef, message),
-      updateDoc(roomRef, {lastMessage}),
+      roomMessagesRef.add(message),
+      roomRef.update(lastMessage),
+      // addDoc(roomMessagesRef, message),
+      // updateDoc(roomRef, {lastMessage}),
     ]);
   }
 

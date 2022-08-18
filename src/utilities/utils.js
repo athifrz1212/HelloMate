@@ -1,9 +1,11 @@
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import {nanoid} from 'nanoid';
-import {ref, uploadBytes, getDownloadURL} from '@react-native-firebase/storage';
+// import {ref, uploadBytes, getDownloadURL} from '@react-native-firebase/storage';
 import firebaseSetup from '../db/firebase';
+
+const {storage} = firebaseSetup();
+
 export async function pickImage() {
-  const {storage} = firebaseSetup();
   let result = await launchCamera({
     saveToPhotos: true,
     mediaType: 'mixed',
@@ -20,32 +22,32 @@ export async function pickImage() {
 export async function uploadImage(uri, path, fName) {
   // Why are we using XMLHttpRequest? See:
   // https://github.com/expo/expo/issues/2402#issuecomment-443726662
-  // const blob = await new Promise((resolve, reject) => {
-  //   const xhr = new XMLHttpRequest();
-  //   xhr.onload = function () {
-  //     resolve(xhr.response);
-  //   };
-  //   xhr.onerror = function (e) {
-  //     console.log(e);
-  //     reject(new TypeError('Network request failed'));
-  //   };
-  //   xhr.responseType = 'blob';
-  //   xhr.open('GET', uri, true);
-  //   xhr.send(null);
-  // });
-
-  const blob = '';
+  const blob = await new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.onload = function () {
+      resolve(xhr.response);
+    };
+    xhr.onerror = function (e) {
+      console.log(e);
+      reject(new TypeError('Network request failed'));
+    };
+    xhr.responseType = 'blob';
+    xhr.open('GET', uri, true);
+    xhr.send(null);
+  });
 
   const fileName = fName || nanoid();
-  const imageRef = ref(storage, `${path}/${fileName}.jpeg`);
-
-  const snapshot = await uploadBytes(imageRef, blob, {
-    contentType: 'image/jpeg',
-  });
+  const imageRef = storage().ref(`${path}/${fileName}.jpeg`);
+  // ref(storage, `${path}/${fileName}.jpeg`);
+  const metadata = {contentType: 'image/jpeg'};
+  const snapshot = await imageRef.put(blob, metadata);
+  // const snapshot = await uploadBytes(imageRef, blob, {
+  //   contentType: 'image/jpeg',
+  // });
 
   blob.close();
 
-  const url = await getDownloadURL(snapshot.ref);
+  const url = await snapshot.ref.getDownloadURL();
 
   return {url, fileName};
 }
