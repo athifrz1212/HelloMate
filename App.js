@@ -1,13 +1,20 @@
 import React, {useState, useEffect, useContext} from 'react';
-import {SafeAreaView, StyleSheet, ImageBackground, LogBox} from 'react-native';
+import {
+  SafeAreaView,
+  Text,
+  StyleSheet,
+  ImageBackground,
+  LogBox,
+} from 'react-native';
 import SignIn from './src/screens/SignIn';
 import Chats from './src/screens/Chats';
-import Chat from './src/screens/Chat';
+// import Chat from './src/screens/Chat';
 import Photo from './src/screens/Photo';
 import Profile from './src/screens/Profile';
 import Contacts from './src/screens/Contacts';
 import GlobalContext from './src/context/Context';
 import ContextWrapper from './src/context/ContextWrapper';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
@@ -64,14 +71,14 @@ const App = () => {
           )}
           <Stack.Screen
             name="home"
-            options={{title: 'Whatsapp'}}
+            options={{title: 'HelloMate'}}
             component={Home}
           />
-          {/* <Stack.Screen
+          <Stack.Screen
             name="contacts"
             options={{title: 'Select Contacts'}}
             component={Contacts}
-          /> */}
+          />
           {/* <Stack.Screen
             name="chat"
             component={Chat}
@@ -86,7 +93,7 @@ const App = () => {
 function Home() {
   const {
     theme: {colors},
-  } = useContext(Context);
+  } = useContext(GlobalContext);
   return (
     <Tab.Navigator
       screenOptions={({route}) => {
@@ -116,7 +123,7 @@ function Home() {
       }}
       initialRouteName="chats">
       <Tab.Screen name="photo" component={Photo} />
-      {/* <Tab.Screen name="chats" component={Chats} /> */}
+      <Tab.Screen name="chats" component={Chats} />
     </Tab.Navigator>
   );
 }

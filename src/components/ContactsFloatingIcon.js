@@ -1,7 +1,7 @@
 import React, {useContext} from 'react';
 import {TouchableOpacity} from 'react-native';
 import '@react-native-async-storage/async-storage';
-import {MaterialCommunityIcons} from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import GlobalContext from '../context/Context';
 import {useNavigation} from '@react-navigation/native';
 export default function ContactsFloatingIcon() {
@@ -11,7 +11,7 @@ export default function ContactsFloatingIcon() {
   const navigation = useNavigation();
   return (
     <TouchableOpacity
-      onPress={() => navigation.navigate('Contacts')}
+      onPress={() => navigation.navigate('contacts')}
       style={{
         position: 'absolute',
         right: 20,

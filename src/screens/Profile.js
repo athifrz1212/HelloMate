@@ -9,7 +9,7 @@ import {
   StatusBar,
 } from 'react-native';
 import GlobalContext from '../context/Context';
-import {MaterialCommunityIcons} from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {pickImage, askForPermission, uploadImage} from '../utilities/utils';
 import firebaseSetup from '../db/firebase';
 // import {updateProfile} from '@react-native-firebase/auth';

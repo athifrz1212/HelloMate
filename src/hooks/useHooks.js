@@ -7,23 +7,58 @@ export default function useContacts() {
   const [contacts, setContacts] = useState([]);
   useEffect(() => {
     (async () => {
-      PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_CONTACTS, {
-        title: 'Contacts',
-        message: 'This app would like to view your contacts.',
-        buttonPositive: 'Please accept bare mortal',
-      }).then(
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.READ_CONTACTS,
+        {
+          title: 'Contacts',
+          message: 'This app would like to view your contacts.',
+          buttonPositive: 'Please accept bare mortal',
+        },
+      );
+
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
         Contacts.getAll()
           .then(contacts => {
             setContacts(
               contacts
-                .filter(c => c.displayName && c.givenName)
+                .filter(
+                  c =>
+                    c.displayName &&
+                    c.familyName &&
+                    c.givenName &&
+                    c.phoneNumbers[0].number,
+                )
                 .map(mapContactToUser),
             );
           })
           .catch(e => {
             console.log(e);
-          }),
-      );
+          });
+      }
+
+      // PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_CONTACTS, {
+      //   title: 'Contacts',
+      //   message: 'This app would like to view your contacts.',
+      //   buttonPositive: 'Please accept bare mortal',
+      // }).then(
+      //   Contacts.getAll()
+      //     .then(contacts => {
+      //       setContacts(
+      //         contacts
+      //           .filter(
+      //             c =>
+      //               c.displayName &&
+      //               c.familyName &&
+      //               c.givenName &&
+      //               c.phoneNumbers[0].number,
+      //           )
+      //           .map(mapContactToUser),
+      //       );
+      //     })
+      //     .catch(e => {
+      //       console.log(e);
+      //     }),
+      // );
     })();
   }, []);
 
@@ -32,9 +67,9 @@ export default function useContacts() {
 function mapContactToUser(contact) {
   return {
     contactName:
-      contact.firstName && contact.lastName
-        ? `${contact.firstName} ${contact.lastName}`
-        : contact.firstName,
-    email: contact.emails[0].email,
+      contact.familyName && contact.givenName
+        ? `${contact.familyName} ${contact.givenName}`
+        : contact.familyName,
+    phoneNumber: contact.phoneNumbers[0].number,
   };
 }

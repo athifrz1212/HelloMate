@@ -9,7 +9,7 @@ export default function Photo() {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
       const result = await pickImage();
-      navigation.navigate('contacts', {image: result});
+      // navigation.navigate('contacts', {image: result});
       if (result.cancelled) {
         setCancelled(true);
         setTimeout(() => navigation.navigate('chats'), 100);

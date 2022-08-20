@@ -31,8 +31,7 @@ export default function SignIn() {
   async function signIn() {
     try {
       await confirmation.confirm(code);
-      console.log('Signed In');
-      navigation.navigate('home');
+      navigation.navigate('profile');
     } catch (error) {
       console.log(error);
     }
