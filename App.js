@@ -76,7 +76,7 @@ const App = () => {
           />
           <Stack.Screen
             name="contacts"
-            options={{title: 'Select Contacts'}}
+            options={{title: 'Select Contact'}}
             component={Contacts}
           />
           {/* <Stack.Screen

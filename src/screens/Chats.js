@@ -15,18 +15,18 @@ export default function Chats() {
     .collection('rooms')
     .where('participantsArray', 'array-contains', currentUser.phoneNumber);
 
-  // useEffect(() => {
-  // const unsubscribe = chatsQuery.get().then(querySnapshot => {
-  //   const parsedChats = querySnapshot.docs.map(doc => ({
-  //     ...doc.data(),
-  //     id: doc.id,
-  //     userB: doc.data().participants.find(p => p.email !== currentUser.email),
-  //   }));
-  //   setUnfilteredRooms(parsedChats);
-  //   setRooms(parsedChats.filter(doc => doc.lastMessage));
-  // });
-  // return () => unsubscribe();
-  // }, []);
+  useEffect(() => {
+    const unsubscribe = chatsQuery.get().then(querySnapshot => {
+      const parsedChats = querySnapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id,
+        userB: doc.data().participants.find(p => p.email !== currentUser.email),
+      }));
+      setUnfilteredRooms(parsedChats);
+      setRooms(parsedChats.filter(doc => doc.lastMessage));
+    });
+    return () => unsubscribe;
+  }, []);
 
   function getUserB(user, contacts) {
     const userContact = contacts.find(c => c.phoneNumber === user.phoneNumber);

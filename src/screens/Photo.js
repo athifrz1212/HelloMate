@@ -2,6 +2,7 @@ import {useNavigation} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {pickImage} from '../utilities/utils';
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 
 export default function Photo() {
   const navigation = useNavigation();

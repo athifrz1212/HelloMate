@@ -7,10 +7,12 @@ import {
   TextInput,
   Button,
   StatusBar,
+  PermissionsAndroid,
 } from 'react-native';
 import GlobalContext from '../context/Context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {pickImage, askForPermission, uploadImage} from '../utilities/utils';
+import {pickImage, uploadImage} from '../utilities/utils';
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import firebaseSetup from '../db/firebase';
 // import {updateProfile} from '@react-native-firebase/auth';
 import {useNavigation} from '@react-navigation/native';
@@ -19,14 +21,7 @@ export default function Profile() {
   const {auth, firestore} = firebaseSetup();
   const [displayName, setDisplayName] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
-  const [permissionStatus, setPermissionStatus] = useState(null);
   const navigation = useNavigation();
-  // useEffect(() => {
-  //   (async () => {
-  //     const status = await askForPermission();
-  //     setPermissionStatus(status);
-  //   })();
-  // }, []);
 
   const {
     theme: {colors},
@@ -64,9 +59,15 @@ export default function Profile() {
   }
 
   async function handleProfilePicture() {
-    const result = await pickImage();
-    if (!result.cancelled) {
-      setSelectedImage(result.uri);
+    // const result = await pickImage();
+    // setSelectedImage(result);
+    const granted = PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.CAMERA,
+    );
+
+    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+      let result = await launchCamera({saveToPhotos: true, mediaType: 'photo'});
+      setSelectedImage(result.assets[0].uri);
     }
   }
 

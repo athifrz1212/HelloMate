@@ -31,7 +31,7 @@ export default function ListItem({
             <Col>
               <Text
                 style={{fontWeight: 'bold', fontSize: 16, color: colors.text}}>
-                {user.contactName || user.displayName}
+                {user.displayName}
               </Text>
             </Col>
             {time && (

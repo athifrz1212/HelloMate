@@ -19,46 +19,12 @@ export default function useContacts() {
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
         Contacts.getAll()
           .then(contacts => {
-            setContacts(
-              contacts
-                .filter(
-                  c =>
-                    c.displayName &&
-                    c.familyName &&
-                    c.givenName &&
-                    c.phoneNumbers[0].number,
-                )
-                .map(mapContactToUser),
-            );
+            setContacts(contacts.map(mapContactToUser));
           })
           .catch(e => {
             console.log(e);
           });
       }
-
-      // PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_CONTACTS, {
-      //   title: 'Contacts',
-      //   message: 'This app would like to view your contacts.',
-      //   buttonPositive: 'Please accept bare mortal',
-      // }).then(
-      //   Contacts.getAll()
-      //     .then(contacts => {
-      //       setContacts(
-      //         contacts
-      //           .filter(
-      //             c =>
-      //               c.displayName &&
-      //               c.familyName &&
-      //               c.givenName &&
-      //               c.phoneNumbers[0].number,
-      //           )
-      //           .map(mapContactToUser),
-      //       );
-      //     })
-      //     .catch(e => {
-      //       console.log(e);
-      //     }),
-      // );
     })();
   }, []);
 
@@ -66,10 +32,7 @@ export default function useContacts() {
 }
 function mapContactToUser(contact) {
   return {
-    contactName:
-      contact.familyName && contact.givenName
-        ? `${contact.familyName} ${contact.givenName}`
-        : contact.familyName,
+    displayName: contact.displayName,
     phoneNumber: contact.phoneNumbers[0].number,
   };
 }

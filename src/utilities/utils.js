@@ -1,3 +1,5 @@
+import {useState} from 'react';
+import {PermissionsAndroid} from 'react-native';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import {nanoid} from 'nanoid';
 // import {ref, uploadBytes, getDownloadURL} from '@react-native-firebase/storage';
@@ -6,18 +8,40 @@ import firebaseSetup from '../db/firebase';
 const {storage} = firebaseSetup();
 
 export async function pickImage() {
+  const [image, setImage] = useState();
+  const granted = PermissionsAndroid.request(
+    PermissionsAndroid.PERMISSIONS.CAMERA,
+  );
+
+  if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+    let result = await launchImageLibrary({
+      selectionLimit: 1,
+      presentationStyle: 'fullScreen',
+    });
+    setImage(result.assets[0].uri);
+  }
+
+  return image;
+}
+
+export async function captureImage() {
+  const [imageUri, setImageUri] = useState();
+  const granted = PermissionsAndroid.request(
+    PermissionsAndroid.PERMISSIONS.CAMERA,
+  );
+
+  // if (granted === PermissionsAndroid.RESULTS.GRANTED) {
   let result = await launchCamera({
     saveToPhotos: true,
     mediaType: 'mixed',
-    includeBase64: false,
+    cameraType: 'back' | 'front',
   });
-  // ImagePicker.launchCameraAsync();
-  return result;
+  setImageUri(result.assets[0].uri);
+  // return result;
+  // }
+
+  return imageUri;
 }
-// export async function askForPermission() {
-//   const {status} = await ImagePicker.requestCameraPermissionsAsync();
-//   return status;
-// }
 
 export async function uploadImage(uri, path, fName) {
   // Why are we using XMLHttpRequest? See:
