@@ -8,12 +8,13 @@ import {
 } from 'react-native';
 import SignIn from './src/screens/SignIn';
 import Chats from './src/screens/Chats';
-// import Chat from './src/screens/Chat';
+import Chat from './src/screens/Chat';
 import Photo from './src/screens/Photo';
 import Profile from './src/screens/Profile';
 import Contacts from './src/screens/Contacts';
 import GlobalContext from './src/context/Context';
 import ContextWrapper from './src/context/ContextWrapper';
+import ChatHeader from './src/components/ChatHeader';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
@@ -79,11 +80,11 @@ const App = () => {
             options={{title: 'Select Contact'}}
             component={Contacts}
           />
-          {/* <Stack.Screen
+          <Stack.Screen
             name="chat"
             component={Chat}
             options={{headerTitle: props => <ChatHeader {...props} />}}
-          /> */}
+          />
         </Stack.Navigator>
       )}
     </NavigationContainer>
