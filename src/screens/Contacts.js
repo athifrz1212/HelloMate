@@ -7,7 +7,8 @@ import firebaseSetup from '../db/firebase';
 import useContacts from '../hooks/useHooks';
 
 export default function Contacts() {
-  const contacts = useContacts().sort(function (a, b) {
+  const contacts = useContacts();
+  const contactList = contacts.sort(function (a, b) {
     return a.displayName - b.displayName;
   });
   const route = useRoute();
@@ -35,9 +36,8 @@ function ContactPreview({contact, image}) {
       .then(snapshot => {
         const userDoc = snapshot.docs[0].data();
         setUser(prevUser => ({...prevUser, userDoc}));
-        // setUser(prevUser => ({...prevUser, snapshot}));
       });
-    return () => unsubscribe();
+    return () => unsubscribe;
   }, []);
   return (
     <ListItem

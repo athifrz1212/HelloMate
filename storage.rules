@@ -6,7 +6,7 @@ service firebase.storage {
       allow write: if request.auth.uid == userId;
     }
     match /images/rooms/{roomId}/{imageId} {
-      allow write, read: if request.auth.token.phone_number in roomId.split(':')
+      allow write, read: if request.auth.token.phoneNumber in roomId.split(':')
     }
   }
 }

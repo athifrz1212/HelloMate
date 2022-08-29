@@ -7,20 +7,19 @@ import {
   TextInput,
   Button,
   StatusBar,
-  PermissionsAndroid,
 } from 'react-native';
 import GlobalContext from '../context/Context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {pickImage, uploadImage} from '../utilities/utils';
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import {pickImage, uploadImage, captureImage} from '../utilities/utils';
 import firebaseSetup from '../db/firebase';
-// import {updateProfile} from '@react-native-firebase/auth';
 import {useNavigation} from '@react-navigation/native';
 
 export default function Profile() {
   const {auth, firestore} = firebaseSetup();
   const [displayName, setDisplayName] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
+  const imagePicker = pickImage();
+  const imageCapture = captureImage();
   const navigation = useNavigation();
 
   const {
@@ -48,35 +47,24 @@ export default function Profile() {
 
     await Promise.all([
       auth().currentUser.updateProfile(userData),
-      // updateProfile(user, userData),
       firestore()
         .collection('users')
         .doc(user.uid)
         .set({...userData, uid: user.uid}),
-      // setDoc(doc(db, 'users', user.uid), {...userData, uid: user.uid}),
     ]);
     navigation.navigate('home');
   }
 
-  async function handleProfilePicture() {
-    // const result = await pickImage();
-    // setSelectedImage(result);
-    const granted = PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.CAMERA,
-    );
+  // async function handleOpenImageLibrarys() {
+  //   const result = await imagePicker;
+  //   setSelectedImage(result);
+  // }
 
-    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-      let result = await launchCamera({saveToPhotos: true, mediaType: 'photo'});
-      setSelectedImage(result.assets[0].uri);
-    }
+  async function handleCaptureImage() {
+    const result = await imageCapture;
+    setSelectedImage(result);
   }
 
-  // if (!permissionStatus) {
-  //   return <Text>Loading</Text>;
-  // }
-  // if (permissionStatus !== 'granted') {
-  //   return <Text>You need to allow this permission</Text>;
-  // }
   return (
     <React.Fragment>
       <StatusBar style="auto" />
@@ -95,7 +83,7 @@ export default function Profile() {
           Please provide your name and an optional profile photo
         </Text>
         <TouchableOpacity
-          onPress={handleProfilePicture}
+          // onPress={handleCaptureImage}
           style={{
             marginTop: 30,
             borderRadius: 120,

@@ -7,7 +7,7 @@ import ContactsFloatingIcon from '../components/ContactsFloatingIcon';
 import ListItem from '../components/ListItem';
 import useContacts from '../hooks/useHooks';
 export default function Chats() {
-  const {auth, storage, firestore} = firebaseSetup();
+  const {auth, firestore} = firebaseSetup();
   const {currentUser} = auth();
   const {rooms, setRooms, setUnfilteredRooms} = useContext(GlobalContext);
   const contacts = useContacts();
@@ -20,18 +20,20 @@ export default function Chats() {
       const parsedChats = querySnapshot.docs.map(doc => ({
         ...doc.data(),
         id: doc.id,
-        userB: doc.data().participants.find(p => p.email !== currentUser.email),
+        userB: doc
+          .data()
+          .participants.find(p => p.phoneNumber !== currentUser.phoneNumber),
       }));
       setUnfilteredRooms(parsedChats);
       setRooms(parsedChats.filter(doc => doc.lastMessage));
     });
-    return () => unsubscribe;
+    return () => unsubscribe();
   }, []);
 
   function getUserB(user, contacts) {
     const userContact = contacts.find(c => c.phoneNumber === user.phoneNumber);
-    if (userContact && userContact.contactName) {
-      return {...user, contactName: userContact.contactName};
+    if (userContact && userContact.displayName) {
+      return {...user, displayName: userContact.displayName};
     }
     return user;
   }

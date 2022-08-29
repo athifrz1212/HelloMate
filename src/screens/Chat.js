@@ -27,6 +27,7 @@ const randomId = nanoid();
 export default function Chat() {
   const {auth, firestore} = firebaseSetup();
   const roomCollection = firestore().collection('rooms');
+  const usersCollection = firestore().collection('users');
   const [roomHash, setRoomHash] = useState('');
   const [messages, setMessages] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -34,12 +35,16 @@ export default function Chat() {
   const {
     theme: {colors},
   } = useContext(GlobalContext);
-  const {currentUser} = auth;
+  const {currentUser} = auth();
   const route = useRoute();
   const room = route.params.room;
   const selectedImage = route.params.image;
   const userB = route.params.user;
 
+  console.log(
+    ' >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> \n ==================' +
+      auth().currentUser,
+  );
   const senderUser = currentUser.photoURL
     ? {
         name: currentUser.displayName,
@@ -47,10 +52,18 @@ export default function Chat() {
         avatar: currentUser.photoURL,
       }
     : {name: currentUser.displayName, _id: currentUser.uid};
+  // const senderUser = currentUser.phoneNumber
+  //   ? {
+  //       name: 'At',
+  //       _id: 'coURAQKg9haNSl9krHNMf0P3l6M2',
+  //       avatar:
+  //         'https://loveshayariimages.in/wp-content/uploads/2021/10/1080p-Latest-Whatsapp-Profile-Images-1.jpg',
+  //     }
+  //   : {name: currentUser.displayName, _id: currentUser.uid};
 
   const roomId = room ? room.id : randomId;
 
-  const roomRef = roomCollection.doc('roomId');
+  const roomRef = roomCollection.doc(roomId);
   const roomMessagesRef = roomCollection.doc(roomId).collection('messages');
 
   useEffect(() => {
@@ -58,21 +71,21 @@ export default function Chat() {
       if (!room) {
         const currUserData = {
           displayName: currentUser.displayName,
-          email: currentUser.email,
+          phoneNumber: currentUser.phoneNumber,
         };
         if (currentUser.photoURL) {
           currUserData.photoURL = currentUser.photoURL;
         }
         const userBData = {
-          displayName: userB.contactName || userB.displayName || '',
-          email: userB.email,
+          displayName: userB.displayName || '',
+          phoneNumber: userB.phoneNumber,
         };
         if (userB.photoURL) {
           userBData.photoURL = userB.photoURL;
         }
         const roomData = {
           participants: [currUserData, userBData],
-          participantsArray: [currentUser.email, userB.email],
+          participantsArray: [currentUser.phoneNumber, userB.phoneNumber],
         };
         try {
           await roomRef.set(roomData);
@@ -80,10 +93,10 @@ export default function Chat() {
           console.log(error);
         }
       }
-      const emailHash = `${currentUser.email}:${userB.email}`;
-      setRoomHash(emailHash);
+      const phoneNumberHash = `${currentUser.phoneNumber}:${userB.phoneNumber}`;
+      setRoomHash(phoneNumberHash);
       if (selectedImage && selectedImage.uri) {
-        await sendImage(selectedImage.uri, emailHash);
+        await sendImage(selectedImage.uri, phoneNumberHash);
       }
     })();
   }, []);
