@@ -41,10 +41,6 @@ export default function Chat() {
   const selectedImage = route.params.image;
   const userB = route.params.user;
 
-  console.log(
-    ' >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> \n ==================' +
-      auth().currentUser,
-  );
   const senderUser = currentUser.photoURL
     ? {
         name: currentUser.displayName,
@@ -77,7 +73,7 @@ export default function Chat() {
           currUserData.photoURL = currentUser.photoURL;
         }
         const userBData = {
-          displayName: userB.displayName || '',
+          displayName: userB.contactName || userB.displayName || '',
           phoneNumber: userB.phoneNumber,
         };
         if (userB.photoURL) {
@@ -102,7 +98,8 @@ export default function Chat() {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = roomMessagesRef.get().then(querySnapshot => {
+    const unsubscribe = roomMessagesRef.onSnapshot(querySnapshot => {
+      // const unsubscribe = roomMessagesRef.get().then(querySnapshot => {
       const messagesFirestore = querySnapshot
         .docChanges()
         .filter(({type}) => type === 'added')
@@ -112,6 +109,7 @@ export default function Chat() {
         })
         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
       appendMessages(messagesFirestore);
+      // appendMessages(messages);
     });
     return () => unsubscribe();
   }, []);
@@ -129,7 +127,8 @@ export default function Chat() {
     const writes = messages.map(m => roomMessagesRef.add(m));
     const lastMessage = messages[messages.length - 1];
 
-    writes.push(roomRef.update(lastMessage));
+    // writes.push(roomRef.update(lastMessage));
+    writes.push(roomRef.update({lastMessage}));
     await Promise.all(writes);
   }
 
@@ -184,7 +183,7 @@ export default function Chat() {
             )}
           />
         )}
-        timeTextStyle={{right: {color: colors.iconGray}}}
+        timeTextStyle={{right: {color: 'black'}}}
         renderSend={props => {
           const {text, messageIdGenerator, user, onSend} = props;
           return (

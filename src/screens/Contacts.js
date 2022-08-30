@@ -8,9 +8,6 @@ import useContacts from '../hooks/useHooks';
 
 export default function Contacts() {
   const contacts = useContacts();
-  const contactList = contacts.sort(function (a, b) {
-    return a.displayName - b.displayName;
-  });
   const route = useRoute();
   const image = route.params && route.params.image;
   return (
@@ -26,7 +23,7 @@ export default function Contacts() {
 function ContactPreview({contact, image}) {
   const {firestore} = firebaseSetup();
   const firestoreSetup = firestore().collection('users');
-  const {unfilteredRooms, rooms} = useContext(GlobalContext);
+  const {unfilteredRooms} = useContext(GlobalContext);
   const [user, setUser] = useState(contact);
 
   useEffect(() => {
@@ -45,10 +42,7 @@ function ContactPreview({contact, image}) {
       type="contacts"
       user={user}
       image={image}
-      // room={unfilteredRooms.find(room =>
-      //   room.participantsArray.includes(contact.phoneNumber),
-      // )}
-      room={rooms.find(room =>
+      room={unfilteredRooms.find(room =>
         room.participantsArray.includes(contact.phoneNumber),
       )}
     />

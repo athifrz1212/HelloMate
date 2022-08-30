@@ -16,17 +16,31 @@ export default function Chats() {
     .where('participantsArray', 'array-contains', currentUser.phoneNumber);
 
   useEffect(() => {
-    const unsubscribe = chatsQuery.get().then(querySnapshot => {
-      const parsedChats = querySnapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id,
-        userB: doc
-          .data()
-          .participants.find(p => p.phoneNumber !== currentUser.phoneNumber),
-      }));
-      setUnfilteredRooms(parsedChats);
-      setRooms(parsedChats.filter(doc => doc.lastMessage));
-    });
+    const unsubscribe = chatsQuery.onSnapshot(
+      querySnapshot => {
+        const parsedChats = querySnapshot.docs.map(doc => ({
+          ...doc.data(),
+          id: doc.id,
+          userB: doc
+            .data()
+            .participants.find(p => p.phoneNumber !== currentUser.phoneNumber),
+        }));
+        setUnfilteredRooms(parsedChats);
+        setRooms(parsedChats.filter(doc => doc.lastMessage));
+      },
+      error => console.log('>>>>>>>>>>>>', error),
+    );
+    // const unsubscribe = chatsQuery.get().then(querySnapshot => {
+    //   const parsedChats = querySnapshot.docs.map(doc => ({
+    //     ...doc.data(),
+    //     id: doc.id,
+    //     userB: doc
+    //       .data()
+    //       .participants.find(p => p.phoneNumber !== currentUser.phoneNumber),
+    //   }));
+    //   setUnfilteredRooms(parsedChats);
+    //   setRooms(parsedChats.filter(doc => doc.lastMessage));
+    // });
     return () => unsubscribe();
   }, []);
 
@@ -35,6 +49,9 @@ export default function Chats() {
     if (userContact && userContact.displayName) {
       return {...user, displayName: userContact.displayName};
     }
+    // if (userContact && userContact.contactName) {
+    //   return {...user, contactName: userContact.contactName};
+    // }
     return user;
   }
 

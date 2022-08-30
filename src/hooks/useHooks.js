@@ -1,10 +1,12 @@
 import {useEffect, useState} from 'react';
 import {PermissionsAndroid} from 'react-native';
+import firebaseSetup from '../db/firebase';
 
 import Contacts from 'react-native-contacts';
 
 export default function useContacts() {
   const [contacts, setContacts] = useState([]);
+  const {firestore} = firebaseSetup();
   useEffect(() => {
     (async () => {
       const granted = await PermissionsAndroid.request(
