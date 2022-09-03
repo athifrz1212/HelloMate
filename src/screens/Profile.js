@@ -83,7 +83,7 @@ export default function Profile() {
           Please provide your name and an optional profile photo
         </Text>
         <TouchableOpacity
-          // onPress={handleCaptureImage}
+          onPress={handleCaptureImage}
           style={{
             marginTop: 30,
             borderRadius: 120,

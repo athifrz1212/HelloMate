@@ -13,6 +13,7 @@ import com.hellomate.newarchitecture.MainApplicationReactNativeHost;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import com.rt2zz.reactnativecontacts.ReactNativeContacts;
+import com.wenkesj.voice.VoicePackage;
 // import io.invertase.firebase.app.ReactNativeFirebaseAppPackage;
 
 public class MainApplication extends Application implements ReactApplication {

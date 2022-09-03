@@ -8,7 +8,11 @@ import {
   Text,
   ImageBackground,
   TouchableOpacity,
+  TouchableHighlight,
+  SafeAreaView,
+  ScrollView,
   Image,
+  StyleSheet,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import firebaseSetup from '../db/firebase';
@@ -21,6 +25,8 @@ import {
 } from 'react-native-gifted-chat';
 import {pickImage, uploadImage} from '../utilities/utils';
 import ImageView from 'react-native-image-viewing';
+import Voice from '@react-native-voice/voice';
+import {TextInput} from 'react-native-gesture-handler';
 
 const randomId = nanoid();
 
@@ -40,6 +46,72 @@ export default function Chat() {
   const room = route.params.room;
   const selectedImage = route.params.image;
   const userB = route.params.user;
+
+  ///--------------------------------------
+  const [pitch, setPitch] = useState('');
+  const [error, setError] = useState('');
+  const [end, setEnd] = useState('');
+  const [started, setStarted] = useState('');
+  const [results, setResults] = useState([]);
+  const [partialResults, setPartialResults] = useState([]);
+
+  useEffect(() => {
+    //Setting callbacks for the process status
+    Voice.onSpeechStart = onSpeechStart;
+    Voice.onSpeechEnd = onSpeechEnd;
+    Voice.onSpeechError = onSpeechError;
+    Voice.onSpeechResults = onSpeechResults;
+
+    return () => {
+      //destroy the process after switching the screen
+      Voice.destroy().then(Voice.removeAllListeners);
+    };
+  }, []);
+
+  const onSpeechStart = e => {
+    console.log('onSpeechStart: ', e);
+  };
+
+  const onSpeechEnd = e => {
+    console.log('onSpeechEnd: ', e);
+  };
+
+  const onSpeechError = e => {
+    console.log('onSpeechError: ', e);
+    setError(JSON.stringify(e.error));
+  };
+
+  const onSpeechResults = e => {
+    let text = e.value[0];
+    setResults(text);
+    console.log('onSpeechResults: ', e);
+  };
+
+  async function startRecognizing() {
+    try {
+      await Voice.start('en-US');
+    } catch (e) {
+      console.log(' Starting error >>>>>>>> : ', e);
+    }
+  }
+
+  async function stopRecognizing() {
+    try {
+      Voice.stop();
+    } catch (e) {
+      console.log(' Stopping error >>>>>>>> : ', e);
+    }
+  }
+
+  async function cancelRecognizing() {
+    try {
+      await Voice.cancel();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  ///--------------------------------------
 
   const senderUser = currentUser.photoURL
     ? {
@@ -99,7 +171,6 @@ export default function Chat() {
 
   useEffect(() => {
     const unsubscribe = roomMessagesRef.onSnapshot(querySnapshot => {
-      // const unsubscribe = roomMessagesRef.get().then(querySnapshot => {
       const messagesFirestore = querySnapshot
         .docChanges()
         .filter(({type}) => type === 'added')
@@ -109,7 +180,6 @@ export default function Chat() {
         })
         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
       appendMessages(messagesFirestore);
-      // appendMessages(messages);
     });
     return () => unsubscribe();
   }, []);
@@ -127,7 +197,6 @@ export default function Chat() {
     const writes = messages.map(m => roomMessagesRef.add(m));
     const lastMessage = messages[messages.length - 1];
 
-    // writes.push(roomRef.update(lastMessage));
     writes.push(roomRef.update({lastMessage}));
     await Promise.all(writes);
   }
@@ -152,9 +221,13 @@ export default function Chat() {
   }
 
   async function handlePhotoPicker() {
-    const result = await pickImage();
-    if (!result.cancelled) {
-      await sendImage(result.uri);
+    try {
+      const result = await pickImage();
+      if (!result.cancelled) {
+        await sendImage(result.uri);
+      }
+    } catch (error) {
+      console.log('Camera selection error >>>>>>>>>>> ', error);
     }
   }
 
@@ -168,6 +241,8 @@ export default function Chat() {
         messages={messages}
         user={senderUser}
         renderAvatar={null}
+        text={results}
+        // textInputProps={<TextInput onChangeText={text => setResults(text)} />}
         renderActions={props => (
           <Actions
             {...props}
@@ -195,13 +270,15 @@ export default function Chat() {
                 backgroundColor: colors.primary,
                 alignItems: 'center',
                 justifyContent: 'center',
+                flexDirection: 'row',
                 marginBottom: 5,
+                marginRight: 5,
               }}
               onPress={() => {
                 if (text && onSend) {
                   onSend(
                     {
-                      text: text.trim(),
+                      text: results,
                       user,
                       _id: messageIdGenerator(),
                     },
@@ -219,7 +296,7 @@ export default function Chat() {
             containerStyle={{
               marginLeft: 10,
               marginRight: 10,
-              marginBottom: 2,
+              marginBottom: 10,
               borderRadius: 20,
               paddingTop: 5,
             }}
@@ -271,6 +348,43 @@ export default function Chat() {
           );
         }}
       />
+      <View
+        style={{
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'row',
+        }}>
+        <TouchableOpacity
+          onPress={stopRecognizing}
+          style={{
+            width: '50%',
+            height: 60,
+            backgroundColor: '#ff0000',
+            alignItems: 'center',
+          }}>
+          <Ionicons
+            name="stop"
+            size={30}
+            color={colors.white}
+            style={{lineHeight: 60}}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={startRecognizing}
+          style={{
+            width: '50%',
+            backgroundColor: '#00ff1f',
+            alignItems: 'center',
+            height: 60,
+          }}>
+          <Ionicons
+            name="mic"
+            size={30}
+            color={colors.foreground}
+            style={{lineHeight: 60}}
+          />
+        </TouchableOpacity>
+      </View>
     </ImageBackground>
   );
 }
