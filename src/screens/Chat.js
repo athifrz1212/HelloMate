@@ -3,17 +3,7 @@ import {useRoute} from '@react-navigation/native';
 import 'react-native-get-random-values';
 import {nanoid} from 'nanoid';
 import React, {useCallback, useContext, useEffect, useState} from 'react';
-import {
-  View,
-  Text,
-  ImageBackground,
-  TouchableOpacity,
-  TouchableHighlight,
-  SafeAreaView,
-  ScrollView,
-  Image,
-  StyleSheet,
-} from 'react-native';
+import {View, ImageBackground, TouchableOpacity, Image} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import firebaseSetup from '../db/firebase';
 import GlobalContext from '../context/Context';
@@ -23,17 +13,19 @@ import {
   GiftedChat,
   InputToolbar,
 } from 'react-native-gifted-chat';
-import {pickImage, uploadImage} from '../utilities/utils';
+import {
+  usePickImage,
+  useUploadImage,
+  useCaptureImage,
+} from '../utilities/utils';
 import ImageView from 'react-native-image-viewing';
 import Voice from '@react-native-voice/voice';
-import {TextInput} from 'react-native-gesture-handler';
 
 const randomId = nanoid();
 
 export default function Chat() {
   const {auth, firestore} = firebaseSetup();
   const roomCollection = firestore().collection('rooms');
-  const usersCollection = firestore().collection('users');
   const [roomHash, setRoomHash] = useState('');
   const [messages, setMessages] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -48,12 +40,8 @@ export default function Chat() {
   const userB = route.params.user;
 
   ///--------------------------------------
-  const [pitch, setPitch] = useState('');
-  const [error, setError] = useState('');
-  const [end, setEnd] = useState('');
-  const [started, setStarted] = useState('');
-  const [results, setResults] = useState([]);
-  const [partialResults, setPartialResults] = useState([]);
+  const [isStarted, setIsStarted] = useState(false);
+  const [results, setResults] = useState('');
 
   useEffect(() => {
     //Setting callbacks for the process status
@@ -84,11 +72,13 @@ export default function Chat() {
   const onSpeechResults = e => {
     let text = e.value[0];
     setResults(text);
+    // setResults(...results,text);
     console.log('onSpeechResults: ', e);
   };
 
   async function startRecognizing() {
     try {
+      setIsStarted(true);
       await Voice.start('en-US');
     } catch (e) {
       console.log(' Starting error >>>>>>>> : ', e);
@@ -97,6 +87,7 @@ export default function Chat() {
 
   async function stopRecognizing() {
     try {
+      setIsStarted(false);
       Voice.stop();
     } catch (e) {
       console.log(' Stopping error >>>>>>>> : ', e);
@@ -120,14 +111,6 @@ export default function Chat() {
         avatar: currentUser.photoURL,
       }
     : {name: currentUser.displayName, _id: currentUser.uid};
-  // const senderUser = currentUser.phoneNumber
-  //   ? {
-  //       name: 'At',
-  //       _id: 'coURAQKg9haNSl9krHNMf0P3l6M2',
-  //       avatar:
-  //         'https://loveshayariimages.in/wp-content/uploads/2021/10/1080p-Latest-Whatsapp-Profile-Images-1.jpg',
-  //     }
-  //   : {name: currentUser.displayName, _id: currentUser.uid};
 
   const roomId = room ? room.id : randomId;
 
@@ -139,21 +122,21 @@ export default function Chat() {
       if (!room) {
         const currUserData = {
           displayName: currentUser.displayName,
-          phoneNumber: currentUser.phoneNumber,
+          phoneNumber: currentUser.phoneNumber.replace(/\s+/g, ''),
         };
         if (currentUser.photoURL) {
           currUserData.photoURL = currentUser.photoURL;
         }
         const userBData = {
           displayName: userB.contactName || userB.displayName || '',
-          phoneNumber: userB.phoneNumber,
+          phoneNumber: userB.phoneNumber.replace(/\s+/g, ''),
         };
         if (userB.photoURL) {
           userBData.photoURL = userB.photoURL;
         }
         const roomData = {
           participants: [currUserData, userBData],
-          participantsArray: [currentUser.phoneNumber, userB.phoneNumber],
+          participantsArray: [currentUser.phoneNumber.replace(/\s+/g, ''), userB.phoneNumber.replace(/\s+/g, '')],
         };
         try {
           await roomRef.set(roomData);
@@ -161,10 +144,10 @@ export default function Chat() {
           console.log(error);
         }
       }
-      const phoneNumberHash = `${currentUser.phoneNumber}:${userB.phoneNumber}`;
+      const phoneNumberHash = `${currentUser.phoneNumber.replace(/\s+/g, '')}:${userB.phoneNumber.replace(/\s+/g, '')}`;
       setRoomHash(phoneNumberHash);
-      if (selectedImage && selectedImage.uri) {
-        await sendImage(selectedImage.uri, phoneNumberHash);
+      if (selectedImageView) {
+        await sendImage(selectedImageView, phoneNumberHash);
       }
     })();
   }, []);
@@ -202,7 +185,7 @@ export default function Chat() {
   }
 
   async function sendImage(uri, roomPath) {
-    const {url, fileName} = await uploadImage(
+    const {url, fileName} = await useUploadImage(
       uri,
       `images/rooms/${roomPath || roomHash}`,
     );
@@ -221,13 +204,24 @@ export default function Chat() {
   }
 
   async function handlePhotoPicker() {
-    try {
-      const result = await pickImage();
-      if (!result.cancelled) {
-        await sendImage(result.uri);
-      }
-    } catch (error) {
-      console.log('Camera selection error >>>>>>>>>>> ', error);
+    const result = await usePickImage();
+
+    if (result.didCancel) {
+      console.log('User cancelled image picker');
+    } else if (result.assets) {
+      console.log('......... ......>>>>>>> ', result.assets[0].uri);
+      sendImage(result.assets[0].uri);
+    }
+  }
+
+  async function handlePhotoCapture() {
+    const result = await useCaptureImage();
+
+    if (result.didCancel) {
+      console.log('User cancelled image picker');
+    } else if ((await result).assets) {
+      console.log('......... ......>>>>>>> ', result.assets[0].uri);
+      setSeletedImageView(result.assets[0].uri);
     }
   }
 
@@ -237,12 +231,14 @@ export default function Chat() {
       source={require('../../assets/chatbg.png')}
       style={{flex: 1}}>
       <GiftedChat
+        textInputProps={{style: {color: 'black'}}}
         onSend={onSend}
         messages={messages}
         user={senderUser}
         renderAvatar={null}
         text={results}
-        // textInputProps={<TextInput onChangeText={text => setResults(text)} />}
+        onInputTextChanged={text => setResults(text)}
+        bottomOffset={200}
         renderActions={props => (
           <Actions
             {...props}
@@ -250,11 +246,12 @@ export default function Chat() {
               position: 'absolute',
               right: 50,
               bottom: 5,
-              zIndex: 9999,
+              zIndex: 999,
             }}
+            on
             onPressActionButton={handlePhotoPicker}
             icon={() => (
-              <Ionicons name="camera" size={30} color={colors.iconGray} />
+              <Ionicons name="camera" size={30} color={colors.lightGray} />
             )}
           />
         )}
@@ -264,15 +261,15 @@ export default function Chat() {
           return (
             <TouchableOpacity
               style={{
-                height: 40,
-                width: 40,
+                height: 45,
+                width: 45,
                 borderRadius: 40,
                 backgroundColor: colors.primary,
                 alignItems: 'center',
                 justifyContent: 'center',
-                flexDirection: 'row',
                 marginBottom: 5,
                 marginRight: 5,
+                right: -215,
               }}
               onPress={() => {
                 if (text && onSend) {
@@ -299,6 +296,7 @@ export default function Chat() {
               marginBottom: 10,
               borderRadius: 20,
               paddingTop: 5,
+              width: '80%',
             }}
           />
         )}
@@ -318,7 +316,7 @@ export default function Chat() {
         )}
         renderMessageImage={props => {
           return (
-            <View style={{borderRadius: 15, padding: 2}}>
+            <View style={{borderRadius: 10, padding: 2}}>
               <TouchableOpacity
                 onPress={() => {
                   setModalVisible(true);
@@ -351,39 +349,42 @@ export default function Chat() {
       <View
         style={{
           width: '100%',
-          display: 'flex',
-          flexDirection: 'row',
+          // display: 'flex',
+          // flexDirection: 'row',
         }}>
-        <TouchableOpacity
-          onPress={stopRecognizing}
-          style={{
-            width: '50%',
-            height: 60,
-            backgroundColor: '#ff0000',
-            alignItems: 'center',
-          }}>
-          <Ionicons
-            name="stop"
-            size={30}
-            color={colors.white}
-            style={{lineHeight: 60}}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={startRecognizing}
-          style={{
-            width: '50%',
-            backgroundColor: '#00ff1f',
-            alignItems: 'center',
-            height: 60,
-          }}>
-          <Ionicons
-            name="mic"
-            size={30}
-            color={colors.foreground}
-            style={{lineHeight: 60}}
-          />
-        </TouchableOpacity>
+        {isStarted ? (
+          <TouchableOpacity
+            onPress={stopRecognizing}
+            style={{
+              // width: '50%',
+              height: 60,
+              backgroundColor: colors.stopRed,
+              alignItems: 'center',
+            }}>
+            <Ionicons
+              name="stop"
+              size={30}
+              color={colors.white}
+              style={{lineHeight: 60}}
+            />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            onPress={startRecognizing}
+            style={{
+              // width: '50%',
+              backgroundColor: colors.startGreen,
+              alignItems: 'center',
+              height: 60,
+            }}>
+            <Ionicons
+              name="mic"
+              size={30}
+              color={colors.foreground}
+              style={{lineHeight: 60}}
+            />
+          </TouchableOpacity>
+        )}
       </View>
     </ImageBackground>
   );

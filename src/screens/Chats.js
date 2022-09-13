@@ -1,25 +1,48 @@
-// import {collection, onSnapshot, query, where} from '@firebase/firestore';
 import React, {useContext, useEffect} from 'react';
-import {View, TouchableOpacity} from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import {useNavigation} from '@react-navigation/native';
+import {View, NativeModules, NativeEventEmitter} from 'react-native';
 import GlobalContext from '../context/Context';
 import firebaseSetup from '../db/firebase';
 import ContactsFloatingIcon from '../components/ContactsFloatingIcon';
 import ListItem from '../components/ListItem';
 import useContacts from '../hooks/useHooks';
+import {AlanView} from '@alan-ai/alan-sdk-react-native';
 
 export default function Chats() {
   const {auth, firestore} = firebaseSetup();
   const {currentUser} = auth();
   const {rooms, setRooms, setUnfilteredRooms} = useContext(GlobalContext);
   const contacts = useContacts();
+  const navigation = useNavigation();
   const {
     theme: {colors},
   } = useContext(GlobalContext);
   const chatsQuery = firestore()
     .collection('rooms')
-    .where('participantsArray', 'array-contains', currentUser.phoneNumber);
+    .where(
+      'participantsArray',
+      'array-contains',
+      currentUser.phoneNumber.replace(/\s+/g, ''),
+    );
 
+  const {AlanEventEmitter} = NativeModules;
+  const alanEventEmitter = new NativeEventEmitter(AlanEventEmitter);
+
+  function getContactName(name) {
+    let contactData = contacts.find(data => data.displayName == name);
+    return contactData;
+  }
+
+  useEffect(() => {
+    alanEventEmitter.addListener('onCommand', data => {
+      if (data.command == 'openContacts') {
+        navigation.navigate('contacts');
+      } else if (data.command == 'openChatRoom') {
+        let contactDetails = getContactName(data.name);
+        navigation.navigate('chat', {contactDetails});
+      }
+    });
+  });
   useEffect(() => {
     const unsubscribe = chatsQuery.onSnapshot(
       querySnapshot => {
@@ -28,7 +51,11 @@ export default function Chats() {
           id: doc.id,
           userB: doc
             .data()
-            .participants.find(p => p.phoneNumber !== currentUser.phoneNumber),
+            .participants.find(
+              p =>
+                p.phoneNumber.replace(/\s+/g, '') !==
+                currentUser.phoneNumber.replace(/\s+/g, ''),
+            ),
         }));
         setUnfilteredRooms(parsedChats);
         setRooms(parsedChats.filter(doc => doc.lastMessage));
@@ -43,9 +70,6 @@ export default function Chats() {
     if (userContact && userContact.displayName) {
       return {...user, displayName: userContact.displayName};
     }
-    // if (userContact && userContact.contactName) {
-    //   return {...user, contactName: userContact.contactName};
-    // }
     return user;
   }
 
@@ -67,7 +91,7 @@ export default function Chats() {
       <View
         style={{
           width: '100%',
-          height: 70,
+          height: 60,
           justifyContent: 'center',
           alignItems: 'center',
           bottom: 0,
@@ -75,39 +99,15 @@ export default function Chats() {
         <View
           style={{
             width: '100%',
-            height: 70,
+            height: 60,
             display: 'flex',
             flexDirection: 'row',
           }}>
-          <TouchableOpacity
-            style={{
-              width: '50%',
-              height: 70,
-              backgroundColor: '#ff0000',
-              alignItems: 'center',
-              lineHeight: 70,
-            }}>
-            <Ionicons
-              name="stop"
-              size={30}
-              color={colors.white}
-              style={{lineHeight: 70}}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{
-              width: '50%',
-              backgroundColor: '#00ff1f',
-              alignItems: 'center',
-              lineHeight: 70,
-            }}>
-            <Ionicons
-              name="mic"
-              size={30}
-              color={colors.foreground}
-              style={{lineHeight: 70}}
-            />
-          </TouchableOpacity>
+          <AlanView
+            projectid={
+              'b82348f936953c75970b5f02c529537e2e956eca572e1d8b807a3e2338fdd0dc/stage'
+            }
+          />
         </View>
       </View>
     </View>

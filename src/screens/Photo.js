@@ -1,21 +1,26 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
-import {pickImage, captureImage} from '../utilities/utils';
+import {View, LogBox} from 'react-native';
+import {usePickImage, useCaptureImage} from '../utilities/utils';
 
+LogBox.ignoreLogs([
+  'Non-serializable values were found in the navigation state',
+]);
 export default function Photo() {
   const navigation = useNavigation();
-  const [cancelled, setCancelled] = useState(false);
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
-      const result = await captureImage();
-      navigation.navigate('contacts', {image: result});
-      if (result.cancelled) {
-        setCancelled(true);
-        setTimeout(() => navigation.navigate('chats'), 100);
+      const result = await usePickImage();
+
+      if (result.didCancel) {
+        console.log('User cancelled image picker');
+        setTimeout(() => navigation.navigate('chats'), 90);
+      } else if (result.assets) {
+        navigation.navigate('contacts', {image: result.assets[0].uri});
       }
     });
+
     return () => unsubscribe();
-  }, [navigation, cancelled]);
+  }, [navigation]);
   return <View />;
 }

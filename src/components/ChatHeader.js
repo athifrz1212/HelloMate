@@ -16,12 +16,12 @@ export default function ChatHeader() {
       </View>
       <View
         style={{
-          marginLeft: 15,
+          marginLeft: 12,
           alignItems: 'center',
           justifyContent: 'center',
         }}>
         <Text style={{color: colors.white, fontSize: 18}}>
-          {route.params.user.displayName}
+          {route.params.user.displayName || route.params.user.contactName}
         </Text>
       </View>
     </View>

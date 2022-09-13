@@ -35,6 +35,8 @@ export default function useContacts() {
 function mapContactToUser(contact) {
   return {
     displayName: contact.displayName,
-    phoneNumber: contact.phoneNumbers[0].number,
+    phoneNumber:
+      contact.phoneNumbers[0]?.number.replace(/\s+/g, '') ||
+      contact.phoneNumbers[0].number.replace(/\s+/g, ''),
   };
 }

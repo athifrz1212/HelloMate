@@ -10,7 +10,11 @@ import {
 } from 'react-native';
 import GlobalContext from '../context/Context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {pickImage, uploadImage, captureImage} from '../utilities/utils';
+import {
+  usePickImage,
+  useCaptureImage,
+  useUploadImage,
+} from '../utilities/utils';
 import firebaseSetup from '../db/firebase';
 import {useNavigation} from '@react-navigation/native';
 
@@ -18,8 +22,6 @@ export default function Profile() {
   const {auth, firestore} = firebaseSetup();
   const [displayName, setDisplayName] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
-  const imagePicker = pickImage();
-  const imageCapture = captureImage();
   const navigation = useNavigation();
 
   const {
@@ -30,7 +32,7 @@ export default function Profile() {
     const user = auth().currentUser;
     let photoURL;
     if (selectedImage) {
-      const {url} = await uploadImage(
+      const {url} = await useUploadImage(
         selectedImage,
         `images/${user.uid}`,
         'profilePicture',
@@ -39,12 +41,11 @@ export default function Profile() {
     }
     const userData = {
       displayName: displayName,
-      phoneNumber: user.phoneNumber,
+      phoneNumber: user.phoneNumber.replace(/\s+/g, ''),
     };
     if (photoURL) {
       userData.photoURL = photoURL;
     }
-
     await Promise.all([
       auth().currentUser.updateProfile(userData),
       firestore()
@@ -55,14 +56,26 @@ export default function Profile() {
     navigation.navigate('home');
   }
 
-  // async function handleOpenImageLibrarys() {
-  //   const result = await imagePicker;
-  //   setSelectedImage(result);
-  // }
+  async function handlePhotoPicker() {
+    const result = await usePickImage();
 
-  async function handleCaptureImage() {
-    const result = await imageCapture;
-    setSelectedImage(result);
+    if (result.didCancel) {
+      console.log('User cancelled image picker');
+    } else if (result.assets) {
+      console.log('......... ......>>>>>>> ', result.assets[0].uri);
+      setSelectedImage(result.assets[0].uri);
+    }
+  }
+
+  async function handlePhotoCapture() {
+    const result = await useCaptureImage();
+
+    if (result.didCancel) {
+      console.log('User cancelled image picker');
+    } else if ((await result).assets) {
+      console.log('......... ......>>>>>>> ', result.assets[0].uri);
+      setSelectedImage(result.assets[0].uri);
+    }
   }
 
   return (
@@ -83,7 +96,7 @@ export default function Profile() {
           Please provide your name and an optional profile photo
         </Text>
         <TouchableOpacity
-          onPress={handleCaptureImage}
+          onPress={handlePhotoPicker}
           style={{
             marginTop: 30,
             borderRadius: 120,
@@ -96,7 +109,7 @@ export default function Profile() {
           {!selectedImage ? (
             <MaterialCommunityIcons
               name="camera-plus"
-              color={colors.iconGray}
+              color={colors.lightGray}
               size={45}
             />
           ) : (
@@ -111,6 +124,7 @@ export default function Profile() {
           value={displayName}
           onChangeText={setDisplayName}
           style={{
+            color: 'black',
             borderBottomColor: colors.primary,
             marginTop: 40,
             borderBottomWidth: 2,

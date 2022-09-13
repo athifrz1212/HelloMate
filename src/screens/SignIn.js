@@ -4,16 +4,14 @@ import {
   View,
   Image,
   TextInput,
-  Button,
   Text,
-  TouchableOpacity,
-  SafeAreaView,
   ActivityIndicator,
 } from 'react-native';
-import Context from '../context/Context';
+import GlobalContext from '../context/Context';
 import firebaseSetup from '../db/firebase';
 import {useNavigation} from '@react-navigation/native';
 import PhoneInput from 'react-native-phone-number-input';
+import {TouchableOpacity} from 'react-native-gesture-handler';
 
 export default function SignIn() {
   const {auth} = firebaseSetup();
@@ -33,14 +31,15 @@ export default function SignIn() {
 
   const {
     theme: {colors},
-  } = useContext(Context);
+  } = useContext(GlobalContext);
 
-  // Handle the button press
   async function requestOTP() {
     if (valid) {
       setIsLoading(true);
       setShowMessage(false);
-      const confirm = await auth().signInWithPhoneNumber(phoneNumber);
+      const confirm = await auth().signInWithPhoneNumber(
+        phoneNumber.replace(/\s+/g, ''),
+      );
       setConfirmation(confirm);
       setIsLoading(false);
     } else {
@@ -72,7 +71,7 @@ export default function SignIn() {
     return (
       <View
         style={{
-          backgroundColor: '#123456',
+          backgroundColor: '#274546',
           height: '100%',
           width: '100%',
           display: 'flex',
@@ -82,7 +81,7 @@ export default function SignIn() {
         <ActivityIndicator
           size={100}
           accessibilityHint="Please wait..."
-          color={'#aef352'}
+          color={colors.tertiary}
         />
       </View>
     );
@@ -92,19 +91,19 @@ export default function SignIn() {
     return (
       <View
         style={{
-          backgroundColor: '#123456',
+          backgroundColor: colors.foreground,
           height: '100%',
         }}>
         <View
           style={{
-            backgroundColor: '#123456',
+            backgroundColor: colors.foreground,
             justifyContent: 'center',
             alignItems: 'center',
             paddingTop: 50,
           }}>
           <Image
             source={require('../../assets/helloMate_logo.png')}
-            style={{width: 200, height: 90, justifyContent: 'space-around'}}
+            style={{width: 200, height: 90, marginBottom: 20, top: '10%'}}
             resizeMode="cover"
           />
         </View>
@@ -113,7 +112,7 @@ export default function SignIn() {
           style={{
             justifyContent: 'center',
             alignItems: 'center',
-            paddingTop: 40,
+            top: '15%',
           }}>
           {showMessage && !valid ? (
             <View style={{paddingBottom: 10}}>
@@ -125,6 +124,7 @@ export default function SignIn() {
             ''
           )}
           <PhoneInput
+            containerStyle={{marginBottom: 20}}
             ref={phoneInput}
             defaultValue={phoneNumber}
             defaultCode="LK"
@@ -140,7 +140,7 @@ export default function SignIn() {
             autoFocus
           />
           <View style={{marginTop: 20}}>
-            <Button
+            <TouchableOpacity
               style={styles.button}
               title="Sign Up"
               disabled={!phoneNumber}
@@ -148,8 +148,9 @@ export default function SignIn() {
                 const checkValid = phoneInput.current?.isValidNumber(value);
                 setValid(checkValid ? checkValid : false);
                 requestOTP();
-              }}
-            />
+              }}>
+              <Text style={styles.buttonText}>Sign Up</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -157,6 +158,7 @@ export default function SignIn() {
   }
   return (
     <View style={styles.container}>
+      <Text style={{fontSize: 28, marginBottom: 20}}>Enter OTP</Text>
       {showOTPMessage ? (
         <View style={{paddingBottom: 10}}>
           <Text style={{color: 'red', textAlign: 'center'}}>
@@ -167,37 +169,49 @@ export default function SignIn() {
         ''
       )}
       <TextInput
+        placeholderTextColor={colors.background}
         style={styles.input}
         placeholder="Enter OTP code"
         value={code}
         onChangeText={setCode}
       />
-      <Button
+      <TouchableOpacity
         style={styles.button}
         title="Confirm OTP"
         disabled={!code}
-        onPress={() => signIn()}
-      />
+        onPress={() => signIn()}>
+        <Text style={styles.buttonText}>Confirm</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '9ab8ba',
+    padding: 8,
+    paddingLeft: 12,
+    paddingRight: 12,
+    backgroundColor: '#25d366',
+    borderRadius: 15,
+    alignContent: 'center',
+  },
+  buttonText: {
+    fontWeight: 'bold',
+    color: '#274546',
+    fontSize: 22,
   },
   container: {
-    backgroundColor: '#123456',
+    backgroundColor: '#274546',
     justifyContent: 'center',
     alignItems: 'center',
     flex: 1,
   },
   input: {
     backgroundColor: '#F8F9F9',
+    color: 'black',
     marginBottom: 20,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#123456',
     padding: 12,
   },
 });

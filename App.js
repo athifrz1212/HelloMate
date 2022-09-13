@@ -2,10 +2,12 @@ import React, {useState, useEffect, useContext} from 'react';
 import {
   SafeAreaView,
   Text,
-  StyleSheet,
   ImageBackground,
   LogBox,
+  NativeModules,
+  NativeEventEmitter,
 } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import SignIn from './src/screens/SignIn';
 import Chats from './src/screens/Chats';
 import Chat from './src/screens/Chat';
@@ -15,16 +17,19 @@ import Contacts from './src/screens/Contacts';
 import GlobalContext from './src/context/Context';
 import ContextWrapper from './src/context/ContextWrapper';
 import ChatHeader from './src/components/ChatHeader';
+import useContacts from './src/hooks/useHooks';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import firebaseSetup from './src/db/firebase';
+import {AlanView} from '@alan-ai/alan-sdk-react-native';
 
 LogBox.ignoreLogs([
   'Setting a timer',
   'AsyncStorage has been extracted from react-native core and will be removed in a future release.',
 ]);
+LogBox.ignoreAllLogs();
 
 const Stack = createStackNavigator();
 const Tab = createMaterialTopTabNavigator();
@@ -91,6 +96,39 @@ const App = () => {
   );
 };
 
+function voiceCommandHandler() {
+  const contacts = useContacts();
+  const navigation = useNavigation();
+  const {AlanEventEmitter} = NativeModules;
+  const alanEventEmitter = new NativeEventEmitter(AlanEventEmitter);
+
+  function getContactName(name) {
+    let contactData = contacts.find(data => data.displayName == name);
+    console.log(JSON.stringify(contactData));
+    return contactData;
+  }
+
+  useEffect(() => {
+    alanEventEmitter.addListener('onCommand', data => {
+      if (data.command == 'openContacts') {
+        navigation.navigate('contacts');
+      } else if (data.command == 'openChatRoom') {
+        let contactDetails = getContactName(data.name);
+        navigation.navigate('chat', {contactDetails});
+      }
+    });
+  });
+  return (
+    <View>
+      <AlanView
+        projectid={
+          'b82348f936953c75970b5f02c529537e2e956eca572e1d8b807a3e2338fdd0dc/stage'
+        }
+      />
+    </View>
+  );
+}
+
 function Home() {
   const {
     theme: {colors},
@@ -101,15 +139,21 @@ function Home() {
         return {
           tabBarLabel: () => {
             if (route.name === 'photo') {
-              return <Ionicons name="camera" size={20} color={colors.white} />;
+              return <Ionicons name="camera" size={24} color={colors.white} />;
             } else {
               return (
-                <Text style={{color: colors.white}}>
+                <Text
+                  style={{
+                    color: colors.white,
+                    fontWeight: '500',
+                    fontSize: 16,
+                  }}>
                   {route.name.toLocaleUpperCase()}
                 </Text>
               );
             }
           },
+          tabBarBounces: true,
           tabBarShowIcon: true,
           tabBarLabelStyle: {
             color: colors.white,
@@ -130,15 +174,6 @@ function Home() {
 }
 
 const Main = () => {
-  // const [assets] = useAssets(
-  //   require('./assets/icon-square.png'),
-  //   require('./assets/chatbg.png'),
-  //   require('./assets/user-icon.png'),
-  //   require('./assets/welcome-img.png'),
-  // );
-  // if (!assets) {
-  //   return <Text>Loading ..</Text>;
-  // }
   return (
     <SafeAreaView>
       <ImageBackground
@@ -151,7 +186,5 @@ const Main = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({});
 
 export default Main;

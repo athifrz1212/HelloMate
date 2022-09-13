@@ -6,117 +6,86 @@ import firebaseSetup from '../db/firebase';
 
 const {storage} = firebaseSetup();
 
-export async function pickImage() {
-  const [image, setImage] = useState();
-  const granted = await PermissionsAndroid.requestMultiple([
-    PermissionsAndroid.PERMISSIONS.CAMERA,
-    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-  ]);
+export async function usePickImage() {
+  // const granted = await PermissionsAndroid.requestMultiple([
+  //   PermissionsAndroid.PERMISSIONS.CAMERA,
+  //   PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+  //   PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+  // ]);
 
-  if (
-    granted['android.permission.CAMERA'] ===
-      PermissionsAndroid.RESULTS.GRANTED &&
-    granted['android.permission.WRITE_EXTERNAL_STORAGE'] ===
-      PermissionsAndroid.RESULTS.GRANTED
-  ) {
-    launchImageLibrary({
-      saveToPhotos: true,
-      mediaType: 'image',
-      cameraType: 'back',
-    })
-      .then(response => {
-        console.log('Response = ', response);
-
-        if (response.didCancel) {
-          console.log('User cancelled image picker');
-        } else if (response.error) {
-          console.log('ImagePicker Error: ', response.error);
-        } else if (response.assets[0]) {
-          const source = {uri: response.assets[0].uri};
-          console.log('response', JSON.stringify(response));
-          setImage(source.uri);
-        }
-      })
-      .catch(error => {
-        console.log('>>>>>>>>>> Error :' + error);
-      });
-  }
-
-  return image;
+  // if (
+  //   granted['android.permission.CAMERA'] ===
+  //     PermissionsAndroid.RESULTS.GRANTED &&
+  //   granted['android.permission.WRITE_EXTERNAL_STORAGE'] ===
+  //     PermissionsAndroid.RESULTS.GRANTED &&
+  //   granted['android.permission.READ_EXTERNAL_STORAGE'] ===
+  //     PermissionsAndroid.RESULTS.GRANTED
+  // ) {
+  const result = launchImageLibrary({
+    mediaType: 'image',
+  });
+  return result;
+  // }
 }
 
-export async function captureImage() {
-  const [imageUri, setImageUri] = useState();
+export async function useCaptureImage() {
+  // const granted = await PermissionsAndroid.requestMultiple([
+  //   PermissionsAndroid.PERMISSIONS.CAMERA,
+  //   PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+  //   PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+  // ]);
 
-  const granted = await PermissionsAndroid.requestMultiple([
-    PermissionsAndroid.PERMISSIONS.CAMERA,
-    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-  ]);
-
-  if (
-    granted['android.permission.CAMERA'] ===
-      PermissionsAndroid.RESULTS.GRANTED &&
-    granted['android.permission.WRITE_EXTERNAL_STORAGE'] ===
-      PermissionsAndroid.RESULTS.GRANTED
-  ) {
-    launchCamera({
-      saveToPhotos: true,
-      mediaType: 'image',
-      cameraType: 'back',
-    })
-      .then(response => {
-        console.log('Response = ', response);
-
-        if (response.didCancel) {
-          console.log('User cancelled image picker');
-        } else if (response.error) {
-          console.log('ImagePicker Error: ', response.error);
-        } else if (response.assets[0]) {
-          const source = {uri: response.assets[0].uri};
-          console.log('response', JSON.stringify(response));
-          setImageUri(source.uri);
-        }
-      })
-      .catch(error => {
-        console.log('>>>>>>>>>> Error :' + error);
-      });
-  }
-
-  return imageUri;
+  // if (
+  //   granted['android.permission.CAMERA'] ===
+  //     PermissionsAndroid.RESULTS.GRANTED &&
+  //   granted['android.permission.WRITE_EXTERNAL_STORAGE'] ===
+  //     PermissionsAndroid.RESULTS.GRANTED &&
+  //   granted['android.permission.READ_EXTERNAL_STORAGE'] ===
+  //     PermissionsAndroid.RESULTS.GRANTED
+  // ) {
+  const result = launchCamera({
+    saveToPhotos: true,
+    mediaType: 'image',
+    cameraType: 'back',
+  });
+  return result;
+  // }
 }
 
-export async function uploadImage(uri, path, fName) {
+export async function useUploadImage(uri, path, fName) {
   // Why are we using XMLHttpRequest? See:
   // https://github.com/expo/expo/issues/2402#issuecomment-443726662
-  const blob = await new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.onload = function () {
-      resolve(xhr.response);
-    };
-    xhr.onerror = function (e) {
-      console.log(e);
-      reject(new TypeError('Network request failed'));
-    };
-    xhr.responseType = 'blob';
-    xhr.open('GET', uri, true);
-    xhr.send(null);
-  });
+  // const blob = await new Promise((resolve, reject) => {
+  //   const xhr = new XMLHttpRequest();
+  //   xhr.onload = function () {
+  //     resolve(xhr.response);
+  //   };
+  //   xhr.onerror = function (e) {
+  //     console.log(e);
+  //     reject(new TypeError('Network request failed'));
+  //   };
+  //   xhr.responseType = 'blob';
+  //   xhr.open('GET', uri, true);
+  //   xhr.send(null);
+  // });
 
   const fileName = fName || nanoid();
   const imageRef = storage().ref(`${path}/${fileName}.jpeg`);
   const metadata = {contentType: 'image/jpeg'};
-  const snapshot = await imageRef.put(blob, metadata);
+  // const snapshot = await imageRef.putFile(blob, metadata);
+  const snapshot = await imageRef.putFile(uri, metadata);
+  console.log('#################### snapsho:-- ', snapshot);
 
-  blob.close();
+  // blob.close();
 
-  const url = await snapshot.ref.getDownloadURL();
+  // const url = await snapshot.ref.getDownloadURL();
+  const url = await imageRef.getDownloadURL();
+  console.log('------------------- Download URL:-- ', url);
 
   return {url, fileName};
 }
 
 const palette = {
-  deepTeal: '#064439',
-  tiber: '#274546',
   tealGreen: '#128c7e',
   tealGreenDark: '#274546',
   green: '#25d366',
@@ -125,20 +94,22 @@ const palette = {
   smokeWhite: '#ABCFC2',
   white: 'white',
   gray: '#3C3C3C',
-  lightGray: '#757575',
-  iconGray: '#717171',
+  lightGray: '#717171',
+  stopRed: '#ff0000',
+  startGreen: '#00ff00',
 };
 
 export const theme = {
   colors: {
     background: palette.smokeWhite,
     foreground: palette.tealGreenDark,
-    primary: palette.tealGreen,
+    primary: palette.tealGreenDark,
     tertiary: palette.lime,
     secondary: palette.green,
     white: palette.white,
     text: palette.gray,
-    secondaryText: palette.lightGray,
-    iconGray: palette.iconGray,
+    lightGray: palette.lightGray,
+    stopRed: palette.stopRed,
+    startGreen: palette.startGreen,
   },
 };
