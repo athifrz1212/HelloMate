@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TextInput,
   Button,
   StatusBar,
+  StyleSheet,
 } from 'react-native';
 import GlobalContext from '../context/Context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -15,10 +16,13 @@ import {
   useCaptureImage,
   useUploadImage,
 } from '../utilities/utils';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import firebaseSetup from '../db/firebase';
 import {useNavigation} from '@react-navigation/native';
+import BottomSheet from 'react-native-simple-bottom-sheet';
 
 export default function Profile() {
+  const panelRef = useRef(null);
   const {auth, firestore} = firebaseSetup();
   const [displayName, setDisplayName] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
@@ -96,7 +100,7 @@ export default function Profile() {
           Please provide your name and an optional profile photo
         </Text>
         <TouchableOpacity
-          onPress={handlePhotoPicker}
+          onPress={() => panelRef.current.togglePanel()}
           style={{
             marginTop: 30,
             borderRadius: 120,
@@ -140,6 +144,30 @@ export default function Profile() {
           />
         </View>
       </View>
+      <BottomSheet
+        ref={ref => (panelRef.current = ref)}
+        sliderMinHeight={0}
+        isClosed>
+        <View style={{display: 'flex', flexDirection: 'row', marginBottom: 20}}>
+          <TouchableOpacity
+            onPress={handlePhotoCapture}
+            style={styles.selectionContainer}>
+            <Ionicons name="camera" size={30} color={colors.foreground} />
+            <Text style={styles.bottomSheetText}>Camera</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handlePhotoPicker}
+            style={styles.selectionContainer}>
+            <Ionicons name="images" size={30} color={colors.stopRed} />
+            <Text style={styles.bottomSheetText}>Library</Text>
+          </TouchableOpacity>
+        </View>
+      </BottomSheet>
     </React.Fragment>
   );
 }
+
+const styles = StyleSheet.create({
+  bottomSheetText: {paddingVertical: 5, color: 'black', fontWeight: '900'},
+  selectionContainer: {alignItems: 'center', width: '50%'},
+});

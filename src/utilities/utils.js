@@ -7,11 +7,11 @@ import firebaseSetup from '../db/firebase';
 const {storage} = firebaseSetup();
 
 export async function usePickImage() {
-  // const granted = await PermissionsAndroid.requestMultiple([
-  //   PermissionsAndroid.PERMISSIONS.CAMERA,
-  //   PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-  //   PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-  // ]);
+  const granted = await PermissionsAndroid.requestMultiple([
+    PermissionsAndroid.PERMISSIONS.CAMERA,
+    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+    PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+  ]);
 
   // if (
   //   granted['android.permission.CAMERA'] ===
@@ -29,11 +29,11 @@ export async function usePickImage() {
 }
 
 export async function useCaptureImage() {
-  // const granted = await PermissionsAndroid.requestMultiple([
-  //   PermissionsAndroid.PERMISSIONS.CAMERA,
-  //   PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-  //   PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-  // ]);
+  const granted = await PermissionsAndroid.requestMultiple([
+    PermissionsAndroid.PERMISSIONS.CAMERA,
+    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+    PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+  ]);
 
   // if (
   //   granted['android.permission.CAMERA'] ===
@@ -53,34 +53,12 @@ export async function useCaptureImage() {
 }
 
 export async function useUploadImage(uri, path, fName) {
-  // Why are we using XMLHttpRequest? See:
-  // https://github.com/expo/expo/issues/2402#issuecomment-443726662
-  // const blob = await new Promise((resolve, reject) => {
-  //   const xhr = new XMLHttpRequest();
-  //   xhr.onload = function () {
-  //     resolve(xhr.response);
-  //   };
-  //   xhr.onerror = function (e) {
-  //     console.log(e);
-  //     reject(new TypeError('Network request failed'));
-  //   };
-  //   xhr.responseType = 'blob';
-  //   xhr.open('GET', uri, true);
-  //   xhr.send(null);
-  // });
-
   const fileName = fName || nanoid();
   const imageRef = storage().ref(`${path}/${fileName}.jpeg`);
   const metadata = {contentType: 'image/jpeg'};
-  // const snapshot = await imageRef.putFile(blob, metadata);
   const snapshot = await imageRef.putFile(uri, metadata);
-  console.log('#################### snapsho:-- ', snapshot);
 
-  // blob.close();
-
-  // const url = await snapshot.ref.getDownloadURL();
   const url = await imageRef.getDownloadURL();
-  console.log('------------------- Download URL:-- ', url);
 
   return {url, fileName};
 }
@@ -95,8 +73,8 @@ const palette = {
   white: 'white',
   gray: '#3C3C3C',
   lightGray: '#717171',
-  stopRed: '#ff0000',
-  startGreen: '#00ff00',
+  stopRed: '#e00202',
+  startGreen: '#07db07',
 };
 
 export const theme = {

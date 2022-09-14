@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useContext} from 'react';
-import {View, Text, TouchableOpacity} from 'react-native';
+import {Text, TouchableOpacity} from 'react-native';
 import GlobalContext from '../context/Context';
 import {Grid, Row, Col} from 'react-native-easy-grid';
 import Avatar from '../utilities/Avatar';

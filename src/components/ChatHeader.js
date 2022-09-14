@@ -16,7 +16,7 @@ export default function ChatHeader() {
       </View>
       <View
         style={{
-          marginLeft: 12,
+          marginLeft: 10,
           alignItems: 'center',
           justifyContent: 'center',
         }}>

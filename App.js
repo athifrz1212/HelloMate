@@ -7,19 +7,19 @@ import {
   NativeModules,
   NativeEventEmitter,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, NavigationContainer} from '@react-navigation/native';
 import SignIn from './src/screens/SignIn';
 import Chats from './src/screens/Chats';
 import Chat from './src/screens/Chat';
 import Photo from './src/screens/Photo';
 import Profile from './src/screens/Profile';
 import Contacts from './src/screens/Contacts';
+import UserProfile from './src/screens/UserProfile';
 import GlobalContext from './src/context/Context';
 import ContextWrapper from './src/context/ContextWrapper';
 import ChatHeader from './src/components/ChatHeader';
 import useContacts from './src/hooks/useHooks';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import firebaseSetup from './src/db/firebase';
@@ -119,13 +119,13 @@ function voiceCommandHandler() {
     });
   });
   return (
-    <View>
+    <NavigationContainer>
       <AlanView
         projectid={
           'b82348f936953c75970b5f02c529537e2e956eca572e1d8b807a3e2338fdd0dc/stage'
         }
       />
-    </View>
+    </NavigationContainer>
   );
 }
 
@@ -169,6 +169,7 @@ function Home() {
       initialRouteName="chats">
       <Tab.Screen name="photo" component={Photo} />
       <Tab.Screen name="chats" component={Chats} />
+      <Tab.Screen name="Profile" component={UserProfile} />
     </Tab.Navigator>
   );
 }

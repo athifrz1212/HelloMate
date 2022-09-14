@@ -2,8 +2,21 @@
 import {useRoute} from '@react-navigation/native';
 import 'react-native-get-random-values';
 import {nanoid} from 'nanoid';
-import React, {useCallback, useContext, useEffect, useState} from 'react';
-import {View, ImageBackground, TouchableOpacity, Image} from 'react-native';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+} from 'react';
+import {
+  View,
+  ImageBackground,
+  TouchableOpacity,
+  Image,
+  Text,
+  StyleSheet,
+} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import firebaseSetup from '../db/firebase';
 import GlobalContext from '../context/Context';
@@ -20,16 +33,20 @@ import {
 } from '../utilities/utils';
 import ImageView from 'react-native-image-viewing';
 import Voice from '@react-native-voice/voice';
+import BottomSheet from 'react-native-simple-bottom-sheet';
 
 const randomId = nanoid();
 
 export default function Chat() {
+  const panelRef = useRef(null);
   const {auth, firestore} = firebaseSetup();
   const roomCollection = firestore().collection('rooms');
+  const userRef = firestore().collection('users');
   const [roomHash, setRoomHash] = useState('');
   const [messages, setMessages] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImageView, setSeletedImageView] = useState('');
+  const [error, setError] = useState('');
   const {
     theme: {colors},
   } = useContext(GlobalContext);
@@ -117,6 +134,12 @@ export default function Chat() {
   const roomRef = roomCollection.doc(roomId);
   const roomMessagesRef = roomCollection.doc(roomId).collection('messages');
 
+  function getUserProfile(phoneNumber) {
+    userRef
+      .where('phoneNumber', '==', contact.phoneNumber.replace(/\s+/g, ''))
+      .get();
+  }
+
   useEffect(() => {
     (async () => {
       if (!room) {
@@ -136,7 +159,10 @@ export default function Chat() {
         }
         const roomData = {
           participants: [currUserData, userBData],
-          participantsArray: [currentUser.phoneNumber.replace(/\s+/g, ''), userB.phoneNumber.replace(/\s+/g, '')],
+          participantsArray: [
+            currentUser.phoneNumber.replace(/\s+/g, ''),
+            userB.phoneNumber.replace(/\s+/g, ''),
+          ],
         };
         try {
           await roomRef.set(roomData);
@@ -144,7 +170,10 @@ export default function Chat() {
           console.log(error);
         }
       }
-      const phoneNumberHash = `${currentUser.phoneNumber.replace(/\s+/g, '')}:${userB.phoneNumber.replace(/\s+/g, '')}`;
+      const phoneNumberHash = `${currentUser.phoneNumber.replace(
+        /\s+/g,
+        '',
+      )}:${userB.phoneNumber.replace(/\s+/g, '')}`;
       setRoomHash(phoneNumberHash);
       if (selectedImageView) {
         await sendImage(selectedImageView, phoneNumberHash);
@@ -219,10 +248,21 @@ export default function Chat() {
 
     if (result.didCancel) {
       console.log('User cancelled image picker');
-    } else if ((await result).assets) {
+    } else if (result.assets) {
       console.log('......... ......>>>>>>> ', result.assets[0].uri);
-      setSeletedImageView(result.assets[0].uri);
+      sendImage(result.assets[0].uri);
     }
+  }
+
+  function scrollToBottomComponent() {
+    return (
+      <Ionicons
+        name="caret-down-circle-outline"
+        size={40}
+        color="#000"
+        style={{alignSelf: 'center'}}
+      />
+    );
   }
 
   return (
@@ -231,14 +271,23 @@ export default function Chat() {
       source={require('../../assets/chatbg.png')}
       style={{flex: 1}}>
       <GiftedChat
+        messagesContainerStyle={{paddingBottom: 15}}
+        quickReplyTextStyle={{color: 'black'}}
+        // textInputProps={{style: {color: 'black'}}}
         textInputProps={{style: {color: 'black'}}}
+        scrollToBottom
+        scrollToBottomComponent={scrollToBottomComponent}
+        scrollToBottomStyle={{
+          width: 50,
+          height: 50,
+          borderRadius: 50,
+        }}
         onSend={onSend}
         messages={messages}
         user={senderUser}
         renderAvatar={null}
         text={results}
         onInputTextChanged={text => setResults(text)}
-        bottomOffset={200}
         renderActions={props => (
           <Actions
             {...props}
@@ -246,12 +295,16 @@ export default function Chat() {
               position: 'absolute',
               right: 50,
               bottom: 5,
-              zIndex: 999,
+              // zIndex: 999,
             }}
-            on
-            onPressActionButton={handlePhotoPicker}
+            // onPressActionButton={() => panelRef.current.togglePanel()}
             icon={() => (
-              <Ionicons name="camera" size={30} color={colors.lightGray} />
+              <Ionicons
+                name="camera"
+                size={30}
+                color={colors.lightGray}
+                onPress={() => panelRef.current.togglePanel()}
+              />
             )}
           />
         )}
@@ -263,13 +316,13 @@ export default function Chat() {
               style={{
                 height: 45,
                 width: 45,
-                borderRadius: 40,
+                borderRadius: 45,
                 backgroundColor: colors.primary,
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginBottom: 5,
-                marginRight: 5,
-                right: -215,
+                // marginRight: 5,
+                right: -200,
               }}
               onPress={() => {
                 if (text && onSend) {
@@ -283,7 +336,7 @@ export default function Chat() {
                   );
                 }
               }}>
-              <Ionicons name="send" size={20} color={colors.white} />
+              <Ionicons name="send" size={25} color={colors.white} />
             </TouchableOpacity>
           );
         }}
@@ -291,12 +344,13 @@ export default function Chat() {
           <InputToolbar
             {...props}
             containerStyle={{
-              marginLeft: 10,
-              marginRight: 10,
-              marginBottom: 10,
-              borderRadius: 20,
+              marginLeft: 8,
+              marginRight: 8,
+              borderRadius: 10,
+              marginBottom: 8,
               paddingTop: 5,
-              width: '80%',
+              paddingLeft: 10,
+              paddingRight: 10,
             }}
           />
         )}
@@ -363,7 +417,7 @@ export default function Chat() {
             }}>
             <Ionicons
               name="stop"
-              size={30}
+              size={40}
               color={colors.white}
               style={{lineHeight: 60}}
             />
@@ -379,13 +433,37 @@ export default function Chat() {
             }}>
             <Ionicons
               name="mic"
-              size={30}
+              size={45}
               color={colors.foreground}
               style={{lineHeight: 60}}
             />
           </TouchableOpacity>
         )}
       </View>
+      <BottomSheet
+        ref={ref => (panelRef.current = ref)}
+        sliderMinHeight={0}
+        isClosed>
+        <View style={{display: 'flex', flexDirection: 'row', marginBottom: 20}}>
+          <TouchableOpacity
+            onPress={handlePhotoCapture}
+            style={styles.selectionContainer}>
+            <Ionicons name="camera" size={30} color={colors.foreground} />
+            <Text style={styles.bottomSheetText}>Camera</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handlePhotoPicker}
+            style={styles.selectionContainer}>
+            <Ionicons name="images" size={30} color={colors.stopRed} />
+            <Text style={styles.bottomSheetText}>Library</Text>
+          </TouchableOpacity>
+        </View>
+      </BottomSheet>
     </ImageBackground>
   );
 }
+
+const styles = StyleSheet.create({
+  bottomSheetText: {paddingVertical: 5, color: 'black', fontWeight: '900'},
+  selectionContainer: {alignItems: 'center', width: '50%'},
+});

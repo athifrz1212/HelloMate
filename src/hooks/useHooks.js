@@ -1,12 +1,10 @@
 import {useEffect, useState} from 'react';
 import {PermissionsAndroid} from 'react-native';
-import firebaseSetup from '../db/firebase';
 
 import Contacts from 'react-native-contacts';
 
 export default function useContacts() {
   const [contacts, setContacts] = useState([]);
-  const {firestore} = firebaseSetup();
   useEffect(() => {
     (async () => {
       const granted = await PermissionsAndroid.request(
@@ -30,13 +28,13 @@ export default function useContacts() {
     })();
   }, []);
 
+  // return contacts.sort((a, b) => a.displayName.localeCompare(b.displayName));
+  // return contacts.sort((a, b) => (a.displayName > b.displayName ? 1 : -1));
   return contacts;
 }
 function mapContactToUser(contact) {
   return {
     displayName: contact.displayName,
-    phoneNumber:
-      contact.phoneNumbers[0]?.number.replace(/\s+/g, '') ||
-      contact.phoneNumbers[0].number.replace(/\s+/g, ''),
+    phoneNumber: contact.phoneNumbers[0]?.number.replace(/\s+/g, ''),
   };
 }

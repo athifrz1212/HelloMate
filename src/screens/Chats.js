@@ -17,6 +17,7 @@ export default function Chats() {
   const {
     theme: {colors},
   } = useContext(GlobalContext);
+  const userRef = firestore().collection('users');
   const chatsQuery = firestore()
     .collection('rooms')
     .where(
@@ -36,13 +37,17 @@ export default function Chats() {
   useEffect(() => {
     alanEventEmitter.addListener('onCommand', data => {
       if (data.command == 'openContacts') {
-        navigation.navigate('contacts');
+        setTimeout(() => {
+          navigation.navigate('contacts');
+        }, 1000);
+        // navigation.navigate('contacts');
       } else if (data.command == 'openChatRoom') {
         let contactDetails = getContactName(data.name);
         navigation.navigate('chat', {contactDetails});
       }
     });
-  });
+  }, []);
+
   useEffect(() => {
     const unsubscribe = chatsQuery.onSnapshot(
       querySnapshot => {

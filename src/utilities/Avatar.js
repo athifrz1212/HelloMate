@@ -14,7 +14,6 @@ export default function Avatar({size, user}) {
           ? {uri: user.photoURL}
           : require('../../assets/icon-square.png')
       }
-      // source={require('../../assets/icon-square.png')}
       resizeMode="cover"
     />
   );

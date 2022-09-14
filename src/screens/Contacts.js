@@ -34,29 +34,46 @@ export default function Contacts() {
         navigation.navigate('contacts');
       } else if (data.command == 'openChatRoom') {
         let contactDetails = getContactName(data.name);
+        console.log('########### Chat room name :- ', data.name);
+        console.log('----------- Open chat room :- ', contactDetails);
         navigation.navigate('chat', {contactDetails});
       }
     });
   });
 
-  {
-    /* <View> */
+  function callProjectApi(name) {
+    /// Provide any params with json
+    AlanManager.callProjectApi(
+      'script::getContactList',
+      {data: getContactName(name)},
+      (error, result) => {
+        if (error) {
+          console.error(error);
+        } else {
+          console.log('>>>>>>>>> Alan output :- ', result);
+        }
+      },
+    );
   }
+  // return (
+  //   <View>
   return (
     <FlatList
-      style={{flex: 1, padding: 10}}
+      style={{flex: 1, padding: 10, height: '90%'}}
       data={contacts}
       keyExtractor={(_, i) => i}
       renderItem={({item}) => <ContactPreview contact={item} image={image} />}
     />
   );
+
   {
     /* <AlanView
         projectid={
           'b82348f936953c75970b5f02c529537e2e956eca572e1d8b807a3e2338fdd0dc/stage'
         }
       />
-    </View> */
+    </View>
+  ); */
   }
 }
 
@@ -68,24 +85,32 @@ function ContactPreview({contact, image}) {
 
   useEffect(() => {
     const unsubscribe = firestoreSetup
-      .where('phoneNumber', '==', contact.phoneNumber.replace(/\s+/g, ''))
+      .where('phoneNumber', '==', contact.phoneNumber)
       .get()
       .then(snapshot => {
-        const userDoc = snapshot.docs[0];
-        setUser(prevUser => ({...prevUser, userDoc}));
+        snapshot.docs.map(snap => {
+          if (snap.phoneNumber === contact.phoneNumber) {
+            setUser(prevUser => ({...prevUser, snap}));
+          } else {
+            return;
+          }
+        });
+        // const userDoc = snapshot.docs[0].data();
+        // snapshot.forEach(doc => setUser(prevUser => ({...prevUser, doc})));
+        // setUser(prevUser => ({...prevUser, userDoc}));
+      })
+      .catch(error => {
+        console.log('>>>>>>>. ', error);
       });
     return () => unsubscribe;
   }, []);
   return (
     <ListItem
-      style={{marginTop: 7}}
       type="contacts"
       user={user}
       image={image}
       room={unfilteredRooms.find(room =>
-        room.participantsArray.includes(
-          contact.phoneNumber.replace(/\s+/g, ''),
-        ),
+        room.participantsArray.includes(contact.phoneNumber),
       )}
     />
   );
