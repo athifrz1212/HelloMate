@@ -38,13 +38,13 @@ export default function Photo() {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
-      // const result = await usePickImage();
-      // if (result.didCancel) {
-      //   console.log('User cancelled image picker');
-      //   setTimeout(() => navigation.navigate('chats'), 90);
-      // } else if (result.assets) {
-      //   navigation.navigate('contacts', {image: result.assets[0].uri});
-      // }
+      const result = await usePickImage();
+      if (result.didCancel) {
+        console.log('User cancelled image picker');
+        setTimeout(() => navigation.navigate('chats'), 90);
+      } else if (result.assets) {
+        navigation.navigate('contacts', {image: result.assets[0].uri});
+      }
     });
 
     return () => unsubscribe();
@@ -57,7 +57,7 @@ export default function Photo() {
         marginBottom: 20,
         marginVertical: 100,
       }}>
-      <TouchableOpacity
+      {/* <TouchableOpacity
         onPress={handlePhotoCapture}
         style={styles.selectionContainer}>
         <Ionicons name="camera" size={30} color={colors.foreground} />
@@ -68,7 +68,7 @@ export default function Photo() {
         style={styles.selectionContainer}>
         <Ionicons name="images" size={30} color={colors.stopRed} />
         <Text style={styles.bottomSheetText}>Library</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   );
 }

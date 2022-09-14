@@ -56,6 +56,7 @@ export default function SignIn() {
         .then(() => {
           setShowOTPMessage(false);
           navigation.navigate('profile');
+          // navigation.navigate('home');
           setIsLoading(false);
         })
         .catch(() => {

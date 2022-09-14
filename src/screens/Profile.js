@@ -1,4 +1,4 @@
-import React, {useContext, useRef, useState} from 'react';
+import React, {useContext, useRef, useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,7 @@ export default function Profile() {
   const {auth, firestore} = firebaseSetup();
   const [displayName, setDisplayName] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
+  const [triggered, setTriggered] = useState(false);
   const navigation = useNavigation();
 
   const {
@@ -66,7 +67,6 @@ export default function Profile() {
     if (result.didCancel) {
       console.log('User cancelled image picker');
     } else if (result.assets) {
-      console.log('......... ......>>>>>>> ', result.assets[0].uri);
       setSelectedImage(result.assets[0].uri);
     }
   }
@@ -76,8 +76,7 @@ export default function Profile() {
 
     if (result.didCancel) {
       console.log('User cancelled image picker');
-    } else if ((await result).assets) {
-      console.log('......... ......>>>>>>> ', result.assets[0].uri);
+    } else if (result.assets) {
       setSelectedImage(result.assets[0].uri);
     }
   }
@@ -100,7 +99,10 @@ export default function Profile() {
           Please provide your name and an optional profile photo
         </Text>
         <TouchableOpacity
-          onPress={() => panelRef.current.togglePanel()}
+          onPress={() => {
+            panelRef.current.togglePanel();
+            setTriggered(true);
+          }}
           style={{
             marginTop: 30,
             borderRadius: 120,

@@ -107,8 +107,10 @@ export default function Chats() {
             height: 60,
             display: 'flex',
             flexDirection: 'row',
+            // backgroundColor: '#123456',
           }}>
           <AlanView
+            // style={{zIndex: 100000}}
             projectid={
               'b82348f936953c75970b5f02c529537e2e956eca572e1d8b807a3e2338fdd0dc/stage'
             }

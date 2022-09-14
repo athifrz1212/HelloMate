@@ -45,7 +45,6 @@ export default function Chat() {
   const [roomHash, setRoomHash] = useState('');
   const [messages, setMessages] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedImageView, setSeletedImageView] = useState('');
   const [error, setError] = useState('');
   const {
     theme: {colors},
@@ -53,12 +52,14 @@ export default function Chat() {
   const {currentUser} = auth();
   const route = useRoute();
   const room = route.params.room;
-  const selectedImage = route.params.image;
+  const [selectedImage, setSeletedImage] = useState(route.params.image);
+  // const selectedImage = route.params.image;
   const userB = route.params.user;
 
   ///--------------------------------------
   const [isStarted, setIsStarted] = useState(false);
   const [results, setResults] = useState('');
+  const [triggered, setTriggered] = useState(false);
 
   useEffect(() => {
     //Setting callbacks for the process status
@@ -175,13 +176,19 @@ export default function Chat() {
         '',
       )}:${userB.phoneNumber.replace(/\s+/g, '')}`;
       setRoomHash(phoneNumberHash);
-      if (selectedImageView) {
-        await sendImage(selectedImageView, phoneNumberHash);
+      // if (selectedImageView) {
+      //   await sendImage(selectedImageView, phoneNumberHash);
+      // }
+      if (selectedImage) {
+        await sendImage(selectedImage, phoneNumberHash);
       }
     })();
   }, []);
 
   useEffect(() => {
+    if (!triggered) {
+      panelRef.current.close;
+    }
     const unsubscribe = roomMessagesRef.onSnapshot(querySnapshot => {
       const messagesFirestore = querySnapshot
         .docChanges()
@@ -238,7 +245,6 @@ export default function Chat() {
     if (result.didCancel) {
       console.log('User cancelled image picker');
     } else if (result.assets) {
-      console.log('......... ......>>>>>>> ', result.assets[0].uri);
       sendImage(result.assets[0].uri);
     }
   }
@@ -249,7 +255,6 @@ export default function Chat() {
     if (result.didCancel) {
       console.log('User cancelled image picker');
     } else if (result.assets) {
-      console.log('......... ......>>>>>>> ', result.assets[0].uri);
       sendImage(result.assets[0].uri);
     }
   }
@@ -303,7 +308,10 @@ export default function Chat() {
                 name="camera"
                 size={30}
                 color={colors.lightGray}
-                onPress={() => panelRef.current.togglePanel()}
+                onPress={() => {
+                  panelRef.current.togglePanel();
+                  setTriggered(true);
+                }}
               />
             )}
           />
@@ -374,7 +382,7 @@ export default function Chat() {
               <TouchableOpacity
                 onPress={() => {
                   setModalVisible(true);
-                  setSeletedImageView(props.currentMessage.image);
+                  setSeletedImage(props.currentMessage.image);
                 }}>
                 <Image
                   resizeMode="contain"
@@ -387,12 +395,12 @@ export default function Chat() {
                   }}
                   source={{uri: props.currentMessage.image}}
                 />
-                {selectedImageView ? (
+                {selectedImage ? (
                   <ImageView
                     imageIndex={0}
                     visible={modalVisible}
                     onRequestClose={() => setModalVisible(false)}
-                    images={[{uri: selectedImageView}]}
+                    images={[{uri: selectedImage}]}
                   />
                 ) : null}
               </TouchableOpacity>
