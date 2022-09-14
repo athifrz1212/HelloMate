@@ -1,7 +1,6 @@
 import React, {useContext, useState} from 'react';
 import {View, TextInput, Button} from 'react-native';
 import Context from '../context/Context';
-import auth from '@react-native-firebase/auth';
 
 export default function SignIn(props) {
   const confirmation = props.confirmation;

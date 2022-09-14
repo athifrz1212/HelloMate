@@ -33,7 +33,7 @@ service cloud.firestore {
       return isAuthenticated() && uid == request.auth.uid
     }
     function isChatMember(membersList) {
-      return isAuthenticated() && request.auth.token.email in membersList;
+      return isAuthenticated() && request.auth.token.phoneNumber in membersList;
     }
 
   }

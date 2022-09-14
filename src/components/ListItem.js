@@ -1,9 +1,10 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useContext} from 'react';
-import {View, Text, TouchableOpacity} from 'react-native';
+import {Text, TouchableOpacity} from 'react-native';
 import GlobalContext from '../context/Context';
 import {Grid, Row, Col} from 'react-native-easy-grid';
 import Avatar from '../utilities/Avatar';
+
 export default function ListItem({
   type,
   description,
@@ -31,12 +32,12 @@ export default function ListItem({
             <Col>
               <Text
                 style={{fontWeight: 'bold', fontSize: 16, color: colors.text}}>
-                {user.contactName || user.displayName}
+                {user.displayName}
               </Text>
             </Col>
             {time && (
               <Col style={{alignItems: 'flex-end'}}>
-                <Text style={{color: colors.secondaryText, fontSize: 11}}>
+                <Text style={{color: colors.lightGray, fontSize: 11}}>
                   {new Date(time.seconds * 1000).toLocaleDateString()}
                 </Text>
               </Col>
@@ -44,7 +45,7 @@ export default function ListItem({
           </Row>
           {description && (
             <Row style={{marginTop: -5}}>
-              <Text style={{color: colors.secondaryText, fontSize: 13}}>
+              <Text style={{color: colors.lightGray, fontSize: 13}}>
                 {description}
               </Text>
             </Row>

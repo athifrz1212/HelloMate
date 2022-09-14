@@ -1,80 +1,93 @@
+import {useState} from 'react';
+import {PermissionsAndroid} from 'react-native';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import {nanoid} from 'nanoid';
-// import {ref, uploadBytes, getDownloadURL} from '@react-native-firebase/storage';
 import firebaseSetup from '../db/firebase';
 
 const {storage} = firebaseSetup();
 
-export async function pickImage() {
-  let result = await launchCamera({
-    saveToPhotos: true,
-    mediaType: 'mixed',
-    includeBase64: false,
+export async function usePickImage() {
+  const granted = await PermissionsAndroid.requestMultiple([
+    PermissionsAndroid.PERMISSIONS.CAMERA,
+    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+    PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+  ]);
+
+  // if (
+  //   granted['android.permission.CAMERA'] ===
+  //     PermissionsAndroid.RESULTS.GRANTED &&
+  //   granted['android.permission.WRITE_EXTERNAL_STORAGE'] ===
+  //     PermissionsAndroid.RESULTS.GRANTED &&
+  //   granted['android.permission.READ_EXTERNAL_STORAGE'] ===
+  //     PermissionsAndroid.RESULTS.GRANTED
+  // ) {
+  const result = launchImageLibrary({
+    mediaType: 'image',
   });
-  // ImagePicker.launchCameraAsync();
   return result;
+  // }
 }
-// export async function askForPermission() {
-//   const {status} = await ImagePicker.requestCameraPermissionsAsync();
-//   return status;
-// }
 
-export async function uploadImage(uri, path, fName) {
-  // Why are we using XMLHttpRequest? See:
-  // https://github.com/expo/expo/issues/2402#issuecomment-443726662
-  const blob = await new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.onload = function () {
-      resolve(xhr.response);
-    };
-    xhr.onerror = function (e) {
-      console.log(e);
-      reject(new TypeError('Network request failed'));
-    };
-    xhr.responseType = 'blob';
-    xhr.open('GET', uri, true);
-    xhr.send(null);
+export async function useCaptureImage() {
+  const granted = await PermissionsAndroid.requestMultiple([
+    PermissionsAndroid.PERMISSIONS.CAMERA,
+    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+    PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+  ]);
+
+  // if (
+  //   granted['android.permission.CAMERA'] ===
+  //     PermissionsAndroid.RESULTS.GRANTED &&
+  //   granted['android.permission.WRITE_EXTERNAL_STORAGE'] ===
+  //     PermissionsAndroid.RESULTS.GRANTED &&
+  //   granted['android.permission.READ_EXTERNAL_STORAGE'] ===
+  //     PermissionsAndroid.RESULTS.GRANTED
+  // ) {
+  const result = launchCamera({
+    saveToPhotos: true,
+    mediaType: 'image',
+    cameraType: 'back',
   });
+  return result;
+  // }
+}
 
+export async function useUploadImage(uri, path, fName) {
   const fileName = fName || nanoid();
   const imageRef = storage().ref(`${path}/${fileName}.jpeg`);
-  // ref(storage, `${path}/${fileName}.jpeg`);
   const metadata = {contentType: 'image/jpeg'};
-  const snapshot = await imageRef.put(blob, metadata);
-  // const snapshot = await uploadBytes(imageRef, blob, {
-  //   contentType: 'image/jpeg',
-  // });
+  const snapshot = await imageRef.putFile(uri, metadata);
 
-  blob.close();
-
-  const url = await snapshot.ref.getDownloadURL();
+  const url = await imageRef.getDownloadURL();
 
   return {url, fileName};
 }
 
 const palette = {
   tealGreen: '#128c7e',
-  tealGreenDark: '#075e54',
+  tealGreenDark: '#274546',
   green: '#25d366',
   lime: '#dcf8c6',
   skyblue: '#34b7f1',
-  smokeWhite: '#ece5dd',
+  smokeWhite: '#ABCFC2',
   white: 'white',
   gray: '#3C3C3C',
-  lightGray: '#757575',
-  iconGray: '#717171',
+  lightGray: '#717171',
+  stopRed: '#e00202',
+  startGreen: '#07db07',
 };
 
 export const theme = {
   colors: {
     background: palette.smokeWhite,
     foreground: palette.tealGreenDark,
-    primary: palette.tealGreen,
+    primary: palette.tealGreenDark,
     tertiary: palette.lime,
     secondary: palette.green,
     white: palette.white,
     text: palette.gray,
-    secondaryText: palette.lightGray,
-    iconGray: palette.iconGray,
+    lightGray: palette.lightGray,
+    stopRed: palette.stopRed,
+    startGreen: palette.startGreen,
   },
 };
