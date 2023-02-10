@@ -4,12 +4,12 @@ import storage from '@react-native-firebase/storage';
 import firestore from '@react-native-firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyDpgv4T1TGgoft39V3Rekry3H_CDSLIkxc',
+  apiKey: '<Firebase apiKey>',
   authDomain: 'hellomate-v1.firebaseapp.com',
   projectId: 'hellomate-v1',
   storageBucket: 'hellomate-v1.appspot.com',
-  messagingSenderId: '226016294609',
-  appId: '1:226016294609:web:7784b8879cbfeabc05b7f0',
+  messagingSenderId: '<Enter data>',
+  appId: '<Enter appId provided by firebase>',
 };
 
 if (!firebase.apps.length) {
